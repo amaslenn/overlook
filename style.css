@@ -1,0 +1,13 @@
+body { font: 11pt Calibri,Tahoma,Arial,sans-serif; }
+
+table, td, th { font-size: 11pt; border-collapse: collapse; border: 1px solid #ccc; }
+td, th { padding: .2em; }
+table { margin-bottom: 1em; }
+th { background-color: #ddf; text-align: left; }
+
+.reviewed-by-user {
+    display: none;
+}
+.user-is-owner {
+    display: none;
+}

@@ -1,0 +1,13 @@
+{
+  "name": "overlook",
+  "version": "0.2.0",
+  "main": "index.html",
+  "window": {
+    "show": true,
+    "toolbar": false,
+    "icon": "shield-warning.png",
+    "position": "center",
+    "width": 900,
+    "height": 600
+  }
+}
