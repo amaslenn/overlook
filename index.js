@@ -167,8 +167,11 @@ function create_changes_table(argument) {
                 });
 }
 
-function update_changes_table(changes, host) {
+function update_changes_table(error, changes, host) {
     document.getElementById('debug').innerHTML = '';
+    if (error) {
+        document.getElementById('gerrit').innerHTML = error;
+    }
 
     data = changes;
 
@@ -225,21 +228,25 @@ function update_entry(data) {
     // console.log('IN update_entry(', data, ')');
     reviewed_by_user = false;
     code_review = 0;
-    for (var i = data['labels']['Code-Review']['all'].length - 1; i >= 0; i--) {
-        if (data['labels']['Code-Review']['all'][i].value) {
-            code_review += data['labels']['Code-Review']['all'][i].value
-            if (data['labels']['Code-Review']['all'][i].name == settings.name)
-                reviewed_by_user = true
-        }
+    if (data['labels']['Code-Review']['all']) {
+        for (var i = data['labels']['Code-Review']['all'].length - 1; i >= 0; i--) {
+            if (data['labels']['Code-Review']['all'][i].value) {
+                code_review += data['labels']['Code-Review']['all'][i].value
+                if (data['labels']['Code-Review']['all'][i].name == settings.name)
+                    reviewed_by_user = true
+            }
 
+        }
     }
     if (code_review > 0)
         code_review = '+' + code_review
 
     verified = 0;
-    for (var i = data['labels']['Verified']['all'].length - 1; i >= 0; i--) {
-        if (data['labels']['Verified']['all'][i].value)
-            verified += data['labels']['Verified']['all'][i].value
+    if (data['labels']['Verified']['all']) {
+        for (var i = data['labels']['Verified']['all'].length - 1; i >= 0; i--) {
+            if (data['labels']['Verified']['all'][i].value)
+                verified += data['labels']['Verified']['all'][i].value
+        }
     }
     if (verified > 0)
         verified = '+' + verified
