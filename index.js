@@ -32,8 +32,10 @@ win.on('loaded', function() {
     var check = function() {
         usr = document.getElementById('usr').value;
         pwd = document.getElementById('pwd').value;
-        if (!usr || !pwd) return false;
-        console.log('OK!');
+        pwd_required = d3_root.select('#pwd_required').property('checked');
+
+        if (!usr || (!!pwd && pwd_required))
+            return;
 
         if (!load_user_settings(usr))
             return;
@@ -54,6 +56,16 @@ win.on('loaded', function() {
         .attr('type', 'password')
         .attr('id', 'pwd')
         .on('change', check);
+    login.append('br');
+    login.append('input')
+        .attr('type', 'checkbox')
+        .attr('id', 'pwd_required')
+        .attr('value', 'password')
+        .on('change', function() {
+            checked = d3_root.select('#pwd_required').property('checked');
+            d3_root.select('#pwd').attr('disabled', checked);
+        });
+    login.append('label').text('No password');
     login.append('br');
     login.append('input')
         .attr('type', 'button')
