@@ -209,7 +209,7 @@ function update_changes_table(changes, host) {
                     return "<span>" + (++i) + "</span>";
                 }
                 if (d.column == '_number') {
-                    var link = 'https://' + host + '/gerrit/#/c/' + d.value;
+                    var link = 'https://' + host + '/#/c/' + d.value;
                     return "<a href=javascript:void(0); onclick=\"OpenGerritLink('" + link + "');\"" + "\">"
                            + d.value + "</a>";
                 }
