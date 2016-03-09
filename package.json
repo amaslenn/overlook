@@ -9,5 +9,10 @@
     "position": "center",
     "width": 900,
     "height": 600
+  },
+  "dependencies": {
+    "d3": "^3.5.16",
+    "js-yaml": "^3.5.3",
+    "open": "0.0.5"
   }
 }
