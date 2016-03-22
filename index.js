@@ -228,7 +228,7 @@ function update_entry(data) {
     // console.log('IN update_entry(', data, ')');
     reviewed_by_user = false;
     code_review = 0;
-    if (data['labels']['Code-Review']['all']) {
+    if (data['labels'] && data['labels']['Code-Review'] && data['labels']['Code-Review']['all']) {
         for (var i = data['labels']['Code-Review']['all'].length - 1; i >= 0; i--) {
             if (data['labels']['Code-Review']['all'][i].value) {
                 code_review += data['labels']['Code-Review']['all'][i].value
