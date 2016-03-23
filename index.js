@@ -44,7 +44,7 @@ win.on('loaded', function() {
             return;
 
         // TODO: check all available projects
-        gerrit.login(settings.projects[0].host, usr, pwd, initialize);
+        gerrit.login(settings.projects[0].host, settings.projects[0].path, usr, pwd, initialize);
         return;
     };
     login = d3_root.select('#login').append('form')
@@ -99,9 +99,10 @@ function get_all_changes() {
 
     for (var i = settings.projects.length - 1; i >= 0; i--) {
         host = settings.projects[i].host
+        path = settings.projects[i].path
         for (var j = settings.projects[i].queries.length - 1; j >= 0; j--) {
             query = settings.projects[i].queries[j]
-            gerrit.query_changes(host, query, update_changes_table);
+            gerrit.query_changes(host, path, query, update_changes_table);
         }
     }
 }
@@ -171,7 +172,7 @@ function create_changes_table(argument) {
                 });
 }
 
-function update_changes_table(error, changes, host) {
+function update_changes_table(error, changes, host, path) {
     document.getElementById('debug').innerHTML = '';
     if (error) {
         document.getElementById('gerrit').innerHTML = error;
@@ -224,7 +225,7 @@ function update_changes_table(error, changes, host) {
             });
 
     for (i in data) {
-        gerrit.get_change_details(host, data[i]['_number'], update_entry);
+        gerrit.get_change_details(host, path, data[i]['_number'], update_entry);
     }
 }
 
