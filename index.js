@@ -217,7 +217,7 @@ function update_changes_table(error, changes, host, path) {
                     return "<span>" + (++i) + "</span>";
                 }
                 if (d.column == '_number') {
-                    var link = 'https://' + host + '/#/c/' + d.value;
+                    var link = 'https://' + host + (path ? '/' + path + '/' : '/') + '#/c/' + d.value;
                     return "<a href=javascript:void(0); onclick=\"OpenGerritLink('" + link + "');\"" + "\">"
                            + d.value + "</a>";
                 }
