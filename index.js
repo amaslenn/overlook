@@ -16,7 +16,7 @@ win.on('minimize', function() {
     this.hide();
 
     tray = new gui.Tray({ title: 'Overlook', icon: 'shield-warning.png' });
-    tray.tooltip = "Overlook";
+    tray.tooltip = 'Overlook';
 
     tray.on('click', function() {
         win.show();
@@ -24,6 +24,9 @@ win.on('minimize', function() {
         tray = null;
     });
 });
+
+var d3_root;
+var all_changes = {};
 
 win.on('loaded', function() {
     win.show();
@@ -89,8 +92,81 @@ win.on('loaded', function() {
                         d3_root.select('#gerrit').selectAll('*').remove();
                         get_all_changes();
                     });
+            init_tabs();
         });
 });
+
+function init_tabs() {
+    var svg = d3_root.select('#menu').append('svg')
+        .attr('width', 500)
+        .attr('height', 50);
+
+    var buttons = svg.append('g').attr('id', 'buttons');
+
+    var tabs = ['All', 'Review', 'Submit'];
+
+    var def_color= '#ffffff';
+    var hover_color= '#18A7FF';
+    var press_color= '#1F77AD';
+
+    var btn_group = buttons.selectAll('g.button')
+        .data(tabs).enter()
+            .append('g')
+                .attr('class', 'button')
+                .attr('id', function(d){ return 'btn-id-' + d })
+                .style('cursor', 'pointer')
+                .on('click', function(d,i) {
+                    d3.select(this.parentNode).selectAll('rect')
+                        .attr('fill', def_color);
+                    d3.select(this).select('rect')
+                        .attr('fill', press_color);
+                })
+                .on('mouseover', function() {
+                    if (d3.select(this).select('rect').attr('fill') != press_color) {
+                        d3.select(this)
+                            .select('rect')
+                            .attr('fill', hover_color);
+                    }
+                })
+                .on('mouseout', function() {
+                    if (d3.select(this).select('rect').attr('fill') != press_color) {
+                        d3.select(this)
+                            .select('rect')
+                            .attr('fill', def_color);
+                    }
+                });
+
+    var b_w = 50;
+    var b_h = 25;
+    var b_space = 10;
+    var x0 = 0;
+    var y0 = 10;
+    btn_group.append('rect')
+        .attr('width', b_w)
+        .attr('height', b_h)
+        .attr('x', function(d, i) { return x0 + (b_w + b_space) * i })
+        .attr('y', y0)
+        .attr('rx', 5)
+        .attr('ry', 5)
+        .attr('fill', def_color)
+        .attr('stroke', '#000000')
+        .attr('stroke-width', 0.2);
+
+    btn_group.append('text')
+        .attr('id', function(d){ return 'btn-text-id-' + d })
+        .attr('font-family', 'Helvetica,Calibri,Arial')
+        .attr('font-size', 12)
+        .attr('x',function(d,i) {
+            return x0 + (b_w+b_space)*i + b_w/2;
+        })
+        .attr('y', y0 + b_h / 2)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('fill', 'black')
+        .text(function(d){ return d });
+
+    d3_root.select('#btn-id-All').select('rect').attr('fill', press_color);
+}
 
 function get_all_changes() {
     console.log('IN get_all_changes()');
@@ -224,8 +300,10 @@ function update_changes_table(error, changes, host, path) {
             });
 
     for (i in data) {
+        all_changes[data[i]['_number']] = {};
         gerrit.get_change_details(host, path, data[i]['_number'], update_entry);
     }
+    d3_root.select('#btn-text-id-All').text('All (' + Object.keys(all_changes).length + ')');
 }
 
 function update_entry(data) {
