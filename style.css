@@ -11,3 +11,6 @@ th { background-color: #ddf; text-align: left; }
 .user-is-owner {
     background-color: #E4FBEF;
 }
+.submit-ready {
+    background-color: #CAECF6;
+}

@@ -106,7 +106,7 @@ function init_tabs() {
     var tabs = ['All', 'Review', 'Submit'];
 
     var def_color= '#ffffff';
-    var hover_color= '#18A7FF';
+    var hover_color= '#B4E2FE';
     var press_color= '#1F77AD';
 
     var btn_group = buttons.selectAll('g.button')
@@ -124,6 +124,8 @@ function init_tabs() {
                         reset_filters();
                     } else if (d == 'Review') {
                         filter_reviewed();
+                    } else if (d == 'Submit') {
+                        filter_submit_ready();
                     }
                 })
                 .on('mouseover', function() {
@@ -344,6 +346,9 @@ function update_entry(data) {
     id = '#V' + data['_number'] + '>span';
     d3.select(document).select(id).html(verified);
 
+    d3_root.select('#gid' + data['_number'])
+        .classed('gerrit-change', true);
+
     d3.select(document).select('#gid' + data['_number'])
         .classed('reviewed-by-user', reviewed_by_user);
 
@@ -356,15 +361,22 @@ function update_entry(data) {
 
 // this function hides reviewed and "my" changes
 function filter_reviewed() {
+    reset_filters();
     d3_root.selectAll('.reviewed-by-user')
         .style('display', 'none');
     d3_root.selectAll('.user-is-owner')
         .style('display', 'none');
 }
 
-function reset_filters() {
-    d3_root.selectAll('.reviewed-by-user')
+function filter_submit_ready() {
+    reset_filters();
+    d3_root.selectAll('.gerrit-change')
+        .style('display', 'none');
+    d3_root.selectAll('.submit-ready')
         .style('display', null);
-    d3_root.selectAll('.user-is-owner')
+}
+
+function reset_filters() {
+    d3_root.selectAll('.gerrit-change')
         .style('display', null);
 }
