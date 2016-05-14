@@ -98,7 +98,7 @@ win.on('loaded', function() {
 
 function init_tabs() {
     var svg = d3_root.select('#menu').append('svg')
-        .attr('width', 500)
+        .attr('width', 600)
         .attr('height', 50);
 
     var buttons = svg.append('g').attr('id', 'buttons');
@@ -141,7 +141,7 @@ function init_tabs() {
                     }
                 });
 
-    var b_w = 100;
+    var b_w = 160;
     var b_h = 25;
     var b_space = 10;
     var x0 = 0;
@@ -168,7 +168,8 @@ function init_tabs() {
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'central')
         .attr('fill', 'black')
-        .text(function(d){ return d });
+        .text(function(d){ return d == 'Review' ? 'Need review' :
+                                  d == 'Submit' ? 'Ready for submit' : d });
 
     d3_root.select('#btn-id-All').select('rect').attr('fill', press_color);
 }
@@ -350,7 +351,7 @@ function update_entry(data) {
         .classed('user-is-owner', data.owner.name == settings.name);
 
     var num = d3_root.selectAll('.reviewed-by-user').size() + d3_root.selectAll('.user-is-owner').size();
-    d3_root.select('#btn-text-id-Review').text('Review (' + (Object.keys(all_changes).length - num) + ')');
+    d3_root.select('#btn-text-id-Review').text('Need review (' + (Object.keys(all_changes).length - num) + ')');
 }
 
 // this function hides reviewed and "my" changes
