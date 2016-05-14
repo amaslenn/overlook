@@ -152,23 +152,22 @@ function OpenGerritLink(link) {
 }
 
 function create_changes_table(argument) {
-    columns = ['id', 'CR', 'V', '_number', 'project', 'subject', 'owner'];
-    var table = d3.select(document.body).select('#gerrit').append("table"),
-        thead = table.append("thead");
+    columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
+    var table = d3.select(document.body).select('#gerrit').append('table'),
+        thead = table.append('thead');
     // append the header row
-    thead.append("tr")
-        .selectAll("th")
+    thead.append('tr')
+        .selectAll('th')
         .data(columns)
             .enter()
-            .append("th")
-                .attr("data-title", function(column) { return column; })
+            .append('th')
+                .attr('data-title', function(column) { return column; })
                 .html(function(column) {
-                    return column == "_number" ? "ID" :
-                           column == "id"      ? "#" :
-                           column == "subject" ? "Subject" :
-                           column == "project" ? "Project" :
-                           column == "review"  ? "Review"  :
-                           column == "owner"   ? "Owner"   : column;
+                    return column == '_number' ? 'ID' :
+                           column == 'subject' ? 'Subject' :
+                           column == 'project' ? 'Project' :
+                           column == 'review'  ? 'Review'  :
+                           column == 'owner'   ? 'Owner'   : column;
                 });
 }
 
@@ -180,20 +179,20 @@ function update_changes_table(error, changes, host, path) {
 
     data = changes;
 
-    columns = ['id', 'CR', 'V', '_number', 'project', 'subject', 'owner'];
+    columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
     var table = d3.select(document.body).select('#gerrit>table'),
-        tbody = table.append("tbody");
+        tbody = table.append('tbody');
 
     // create a row for each object in the data
-    var rows = tbody.selectAll("tr")
+    var rows = tbody.selectAll('tr')
                         .data(data)
                         .enter()
-                            .append("tr")
+                            .append('tr')
                             .attr('id', function(d) { return 'gid' + d['_number']; });
 
     var i = 0;
     // create a cell in each row for each column
-    var cells = rows.selectAll("td")
+    var cells = rows.selectAll('td')
         .data(function(row) {
             return columns.map(function(column) {
                 obj = {
@@ -209,12 +208,12 @@ function update_changes_table(error, changes, host, path) {
             });
         })
         .enter()
-            .append("td")
+            .append('td')
             .attr('id', function(d){ return d.column + d.gid })
-            .append("span")
+            .append('span')
             .html(function(d) {
                 if (d.column == 'id') {
-                    return "<span>" + (++i) + "</span>";
+                    return '<span>' + (++i) + '</span>';
                 }
                 if (d.column == '_number') {
                     var link = 'https://' + host + (path ? '/' + path + '/' : '/') + '#/c/' + d.value;
