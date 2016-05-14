@@ -286,8 +286,12 @@ function update_changes_table(error, changes, host, path) {
                 };
                 if (column == 'created' || column == 'updated')
                     obj.value = (new Date(row[column])).toLocaleString();
-                if (column == 'owner')
-                    obj.value = row.owner.name;
+                if (column == 'owner') {
+                    var owner = '<img class="avatar" src="' + row.owner.avatars[0].url + '"' +
+                                ' title="' + row.owner.name + '"' +
+                                '>' + row.owner.name;
+                    obj.value = owner;
+                }
                 return obj;
             });
         })

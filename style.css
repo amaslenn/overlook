@@ -14,3 +14,11 @@ th { background-color: #ddf; text-align: left; }
 .submit-ready {
     background-color: #CAECF6;
 }
+.avatar {
+    border-radius: 50%;
+    margin-right: 0.2em;
+    position: relative;
+    top: 2px;
+    height: 16px !important;
+    width: 16px;
+}
