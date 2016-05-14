@@ -105,41 +105,21 @@ function init_tabs() {
 
     var tabs = ['All', 'Review', 'Submit'];
 
-    var def_color= '#ffffff';
-    var hover_color= '#B4E2FE';
-    var press_color= '#1F77AD';
-
-    var btn_group = buttons.selectAll('g.button')
+    var btn_group = buttons.selectAll('g')
         .data(tabs).enter()
             .append('g')
-                .attr('class', 'button')
                 .attr('id', function(d){ return 'btn-id-' + d })
-                .style('cursor', 'pointer')
                 .on('click', function(d, i) {
                     d3.select(this.parentNode).selectAll('rect')
-                        .attr('fill', def_color);
+                        .classed('pressed', false);
                     d3.select(this).select('rect')
-                        .attr('fill', press_color);
+                        .classed('pressed', true);
                     if (d == 'All') {
                         reset_filters();
                     } else if (d == 'Review') {
                         filter_reviewed();
                     } else if (d == 'Submit') {
                         filter_submit_ready();
-                    }
-                })
-                .on('mouseover', function() {
-                    if (d3.select(this).select('rect').attr('fill') != press_color) {
-                        d3.select(this)
-                            .select('rect')
-                            .attr('fill', hover_color);
-                    }
-                })
-                .on('mouseout', function() {
-                    if (d3.select(this).select('rect').attr('fill') != press_color) {
-                        d3.select(this)
-                            .select('rect')
-                            .attr('fill', def_color);
                     }
                 });
 
@@ -149,31 +129,25 @@ function init_tabs() {
     var x0 = 0;
     var y0 = 10;
     btn_group.append('rect')
+        .classed('svg-button', true)
         .attr('width', b_w)
         .attr('height', b_h)
         .attr('x', function(d, i) { return x0 + (b_w + b_space) * i })
         .attr('y', y0)
         .attr('rx', 5)
-        .attr('ry', 5)
-        .attr('fill', def_color)
-        .attr('stroke', '#000000')
-        .attr('stroke-width', 0.2);
+        .attr('ry', 5);
 
     btn_group.append('text')
+        .classed('svg-button-text', true)
         .attr('id', function(d){ return 'btn-text-id-' + d })
-        .attr('font-family', 'Helvetica,Calibri,Arial')
-        .attr('font-size', 12)
         .attr('x',function(d,i) {
             return x0 + (b_w+b_space)*i + b_w/2;
         })
         .attr('y', y0 + b_h / 2)
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'central')
-        .attr('fill', 'black')
         .text(function(d){ return d == 'Review' ? 'Need review' :
                                   d == 'Submit' ? 'Ready for submit' : d });
 
-    d3_root.select('#btn-id-All').select('rect').attr('fill', press_color);
+    d3_root.select('#btn-id-All').select('rect').classed('pressed', true);
 }
 
 function get_all_changes() {
