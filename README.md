@@ -14,3 +14,8 @@ amaslenn:
       required_reviewers: [gerrit-user-name1, gerrit-user-name2]
       verified: True    // is Verified required
 ```
+
+## How to build
+`$> cd overlook`  
+`$> npm i -g nw-builder`  
+`$> nwbuild -p win64 -v 0.12.3 .`  
