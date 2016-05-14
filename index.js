@@ -316,14 +316,17 @@ function update_changes_table(error, changes, host, path) {
 
 function update_entry(data) {
     // console.log('IN update_entry(', data, ')');
-    reviewed_by_user = false;
-    code_review = 0;
+    var reviewed_by_user = false;
+    var code_review = 0;
+    var reviewers = {};
     if (data['labels'] && data['labels']['Code-Review'] && data['labels']['Code-Review']['all']) {
-        for (var i = data['labels']['Code-Review']['all'].length - 1; i >= 0; i--) {
-            if (data['labels']['Code-Review']['all'][i].value) {
-                code_review += data['labels']['Code-Review']['all'][i].value
-                if (data['labels']['Code-Review']['all'][i].name == settings.name)
-                    reviewed_by_user = true
+        var cr = data['labels']['Code-Review']['all'];
+        for (var i = cr.length - 1; i >= 0; i--) {
+            if (cr[i].value) {
+                code_review += cr[i].value;
+                reviewers[cr[i].name] = cr[i].value;
+                if (cr[i].name == settings.name)
+                    reviewed_by_user = true;
             }
 
         }
@@ -331,7 +334,7 @@ function update_entry(data) {
     if (code_review > 0)
         code_review = '+' + code_review
 
-    verified = 0;
+    var verified = 0;
     if (data['labels']['Verified']['all']) {
         for (var i = data['labels']['Verified']['all'].length - 1; i >= 0; i--) {
             if (data['labels']['Verified']['all'][i].value)
@@ -357,6 +360,44 @@ function update_entry(data) {
 
     var num = d3_root.selectAll('.reviewed-by-user').size() + d3_root.selectAll('.user-is-owner').size();
     d3_root.select('#btn-text-id-Review').text('Need review (' + (Object.keys(all_changes).length - num) + ')');
+
+    if (settings.rules != undefined) {
+        if (settings.rules.submit_ready != undefined) {
+            for (var index in settings.rules.submit_ready) {
+                var rule = settings.rules.submit_ready[index];
+
+                // project is mandatory
+                if (rule.project != undefined) {
+                    if (rule.project != data.project)
+                        continue;
+                } else {
+                    continue;
+                }
+
+                var verified_ok = true;
+                if (rule.verified != undefined) {
+                    if (rule.verified && !verified)
+                        verified_ok = false;
+                }
+
+                var reviewers_ok = true;
+                if (rule.required_reviewers != undefined) {
+                    for (var index in rule.required_reviewers) {
+                        var r = rule.required_reviewers[index];
+                        if (!(r in reviewers) || reviewers[r] <= 0)
+                            reviewers_ok = false;
+                    }
+                }
+
+                d3_root.select('#gid' + data['_number'])
+                    .classed('submit-ready', verified_ok && reviewers_ok);
+
+                var num = d3_root.selectAll('.submit-ready').size();
+                d3_root.select('#btn-text-id-Submit')
+                    .text('Ready for submit (' + num + ')');
+            }
+        }
+    }
 }
 
 // this function hides reviewed and "my" changes
