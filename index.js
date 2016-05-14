@@ -115,11 +115,16 @@ function init_tabs() {
                 .attr('class', 'button')
                 .attr('id', function(d){ return 'btn-id-' + d })
                 .style('cursor', 'pointer')
-                .on('click', function(d,i) {
+                .on('click', function(d, i) {
                     d3.select(this.parentNode).selectAll('rect')
                         .attr('fill', def_color);
                     d3.select(this).select('rect')
                         .attr('fill', press_color);
+                    if (d == 'All') {
+                        reset_filters();
+                    } else if (d == 'Review') {
+                        filter_reviewed();
+                    }
                 })
                 .on('mouseover', function() {
                     if (d3.select(this).select('rect').attr('fill') != press_color) {
@@ -136,7 +141,7 @@ function init_tabs() {
                     }
                 });
 
-    var b_w = 50;
+    var b_w = 100;
     var b_h = 25;
     var b_space = 10;
     var x0 = 0;
@@ -343,4 +348,22 @@ function update_entry(data) {
 
     d3.select(document).select('#gid' + data['_number'])
         .classed('user-is-owner', data.owner.name == settings.name);
+
+    var num = d3_root.selectAll('.reviewed-by-user').size() + d3_root.selectAll('.user-is-owner').size();
+    d3_root.select('#btn-text-id-Review').text('Review (' + (Object.keys(all_changes).length - num) + ')');
+}
+
+// this function hides reviewed and "my" changes
+function filter_reviewed() {
+    d3_root.selectAll('.reviewed-by-user')
+        .style('display', 'none');
+    d3_root.selectAll('.user-is-owner')
+        .style('display', 'none');
+}
+
+function reset_filters() {
+    d3_root.selectAll('.reviewed-by-user')
+        .style('display', null);
+    d3_root.selectAll('.user-is-owner')
+        .style('display', null);
 }

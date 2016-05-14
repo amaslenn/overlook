@@ -6,8 +6,8 @@ table { margin-bottom: 1em; }
 th { background-color: #ddf; text-align: left; }
 
 .reviewed-by-user {
-    display: none;
+    background-color: #E4FBEF;
 }
 .user-is-owner {
-    display: none;
+    background-color: #E4FBEF;
 }
