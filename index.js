@@ -90,6 +90,7 @@ win.on('loaded', function() {
                     .attr('id', 'refresh_btn')
                     .on('click', function() {
                         d3_root.select('#gerrit').selectAll('*').remove();
+                        reset_filters();
                         get_all_changes();
                     });
             init_tabs();
@@ -398,4 +399,13 @@ function filter_submit_ready() {
 function reset_filters() {
     d3_root.selectAll('.gerrit-change')
         .style('display', null);
+
+    // update tabs' labels
+    var num = d3_root.selectAll('.submit-ready').size();
+    d3_root.select('#btn-text-id-Submit')
+        .text('Ready for submit' + (num ? ' (' + num + ')' : ''));
+    num = Object.keys(all_changes).length;
+    num = num - (d3_root.selectAll('.user-is-owner').size() + d3_root.selectAll('.reviewed-by-user').size());
+    d3_root.select('#btn-text-id-Review')
+        .text('Need review' + (num ? ' (' + num + ')' : ''));
 }
