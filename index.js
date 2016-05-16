@@ -154,6 +154,7 @@ function init_tabs() {
 function get_all_changes() {
     console.log('IN get_all_changes()');
 
+    start_loading();
     create_changes_table();
 
     for (var i = settings.projects.length - 1; i >= 0; i--) {
@@ -287,7 +288,7 @@ function update_changes_table(error, changes, host, path) {
             });
 
     for (i in data) {
-        all_changes[data[i]['_number']] = {};
+        all_changes[data[i]['_number']] = {'sts': 'updating'};
         gerrit.get_change_details(host, path, data[i]['_number'], update_entry);
     }
     d3_root.select('#btn-text-id-All').text('All (' + Object.keys(all_changes).length + ')');
@@ -377,6 +378,9 @@ function update_entry(data) {
             }
         }
     }
+
+    all_changes[data['_number']]['sts'] = 'updated';
+    updater_loading_status();
 }
 
 // this function hides reviewed and "my" changes
@@ -408,4 +412,22 @@ function reset_filters() {
     num = num - (d3_root.selectAll('.user-is-owner').size() + d3_root.selectAll('.reviewed-by-user').size());
     d3_root.select('#btn-text-id-Review')
         .text('Need review' + (num ? ' (' + num + ')' : ''));
+}
+
+function start_loading() {
+    if (!d3_root.select('#loader').classed('loader'))
+        d3_root.select('#loader').classed('loader', true);
+}
+
+function updater_loading_status() {
+    var in_progress = false;
+    for (var gid in all_changes) {
+        if (all_changes[gid]['sts'] == 'updating')
+            in_progress = true;
+    }
+
+    var showed = d3_root.select('#loader').classed('loader');
+
+    if (in_progress != showed)
+        d3_root.select('#loader').classed('loader', in_progress);
 }
