@@ -4,7 +4,7 @@
     padding: 15px;
     margin: auto;
 }
-.nav-tabs {
+.nav-tabs li {
     cursor: pointer;
 }
 .container-fluid {
