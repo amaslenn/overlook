@@ -281,6 +281,11 @@ function update_entry(data) {
                 if (rule.required_reviewers != undefined) {
                     for (var index in rule.required_reviewers) {
                         var r = rule.required_reviewers[index];
+
+                        // owner can't be required reviewer
+                        if (r == data.owner.name)
+                            continue;
+
                         if (!(r in reviewers) || reviewers[r] <= 0)
                             reviewers_ok = false;
                     }
