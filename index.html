@@ -3,13 +3,43 @@
   <head>
     <title>Overlook</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.css">
     <script src="index.js"></script>
   </head>
   <body>
     <div id="loader"></div>
-    <div id="menu"></div>
+    <div id="login">
+        <form class="form-signin" novalidate>
+            <h2>Log in</h2>
+            <label for="user" class="sr-only">User</label>
+            <input onchange="check_login()" type="text" id="user" class="form-control" placeholder="Gerrit user" required autofocus>
+            <label for="password" class="sr-only">Password</label>
+            <input onchange="check_login()" type="password" id="password" class="form-control" placeholder="Password" required>
+            <div class="checkbox">
+                <label>
+                    <input onchange="check_login()" type="checkbox" id="no_password"> No password
+                </label>
+            </div>
+            <button onclick="load_data()" id="login_btn" class="btn btn-primary btn-block" type="button" disabled="disabled">Log in</button>
+        </form>
+    </div>
+    <div id="menu" class="hide">
+        <button onclick="refresh()" type="button" class="btn btn-default">
+            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+        </button>
+        <ul class="nav nav-tabs">
+            <li onclick="filter_all()" id="nav_all" role="presentation" class="active">
+                <a>All <span id="all_num" class="badge"></span></a>
+            </li>
+            <li onclick="filter_reviewed()" id="nav_review" role="presentation">
+                <a>Need review <span id="review_num" class="badge"></span></a>
+            </li>
+            <li onclick="filter_submit_ready()" id="nav_submit" role="presentation">
+                <a>Ready for submit <span id="submit_num" class="badge"></span></a>
+            </li>
+        </ul>
+    </div>
     <div id="debug"></div>
-    <div id="login"></div>
     <div id="gerrit"></div>
   </body>
 </html>

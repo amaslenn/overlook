@@ -11,6 +11,7 @@
     "height": 600
   },
   "dependencies": {
+    "bootstrap": "^3.3.6",
     "d3": "^3.5.16",
     "js-yaml": "^3.5.3",
     "open": "0.0.5"

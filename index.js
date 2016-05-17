@@ -9,8 +9,10 @@ var fs = require('fs');
 var win = gui.Window.get();
 var tray;
 var settings = {};
+var d3_root;
+var all_changes = {};
 
-//win.showDevTools();
+// win.showDevTools();
 
 win.on('minimize', function() {
     this.hide();
@@ -25,135 +27,46 @@ win.on('minimize', function() {
     });
 });
 
-var d3_root;
-var all_changes = {};
-
 win.on('loaded', function() {
     win.show();
     d3_root = d3.select(document);
 
-    var check = function() {
-        usr = document.getElementById('usr').value;
-        pwd = document.getElementById('pwd').value;
-        no_pwd = d3_root.select('#no_pwd').property('checked');
-
-        if (usr == undefined || usr.length == 0)
-            return;
-
-        if ((pwd == undefined || pwd.length == 0) && !no_pwd)
-            return;
-
-        if (!load_user_settings(usr))
-            return;
-
-        // TODO: check all available projects
-        gerrit.login(settings.projects[0].host, settings.projects[0].path, usr, pwd, initialize);
-        return;
-    };
-    login = d3_root.select('#login').append('form')
-        .style('margin', 'auto')
-        .style('width', '30%');
-    login.append('input')
-        .attr('type', 'text')
-        .attr('id', 'usr')
-        .on('change', check);
-    login.append('br');
-    login.append('input')
-        .attr('type', 'password')
-        .attr('id', 'pwd')
-        .on('change', check);
-    login.append('br');
-    login.append('input')
-        .attr('type', 'checkbox')
-        .attr('id', 'no_pwd')
-        .attr('value', 'password')
-        .on('change', function() {
-            checked = d3_root.select('#no_pwd').property('checked');
-            d3_root.select('#pwd').attr('disabled', checked);
-            check();
-        });
-    login.append('label').text('No password');
-    login.append('br');
-    login.append('input')
-        .attr('type', 'button')
-        .attr('value', 'Go!')
-        .attr('disabled', true)
-        .attr('id', 'login_btn')
-        .on('click', function() {
-            d3_root.select('#login').remove();
-            document.getElementById('debug').innerHTML = 'Loading...';
-            get_all_changes();
-            d3_root.select('#menu').append('div')
-                .append('input')
-                    .attr('type', 'button')
-                    .attr('value', 'Refresh')
-                    .attr('id', 'refresh_btn')
-                    .on('click', function() {
-                        d3_root.select('#gerrit').selectAll('*').remove();
-                        reset_filters();
-                        get_all_changes();
-                    });
-            init_tabs();
-        });
 });
 
-function init_tabs() {
-    var svg = d3_root.select('#menu').append('svg')
-        .attr('width', 600)
-        .attr('height', 50);
+function load_data() {
+    d3_root.select('#login').classed('hide', true);
+    d3_root.select('#menu').classed('hide', false);
+    start_loading();
+    get_all_changes();
+}
 
-    var buttons = svg.append('g').attr('id', 'buttons');
+function refresh() {
+    d3_root.select('#gerrit').selectAll('*').remove();
+    start_loading();
+    reset_filters();
+    get_all_changes();
+}
 
-    var tabs = ['All', 'Review', 'Submit'];
+function check_login() {
+    var usr = d3_root.select('#user').property('value');
+    var pwd = d3_root.select('#password').property('value');
+    var no_pwd = d3_root.select('#no_password').property('checked');
 
-    var btn_group = buttons.selectAll('g')
-        .data(tabs).enter()
-            .append('g')
-                .attr('id', function(d){ return 'btn-id-' + d })
-                .on('click', function(d, i) {
-                    d3.select(this.parentNode).selectAll('rect')
-                        .classed('pressed', false);
-                    d3.select(this).select('rect')
-                        .classed('pressed', true);
-                    if (d == 'All') {
-                        reset_filters();
-                    } else if (d == 'Review') {
-                        filter_reviewed();
-                    } else if (d == 'Submit') {
-                        filter_submit_ready();
-                    }
-                });
+    if (usr == undefined || usr.length == 0)
+        return;
 
-    var b_w = 160;
-    var b_h = 25;
-    var b_space = 10;
-    var x0 = 0;
-    var y0 = 10;
-    btn_group.append('rect')
-        .classed('svg-button', true)
-        .attr('width', b_w)
-        .attr('height', b_h)
-        .attr('x', function(d, i) { return x0 + (b_w + b_space) * i })
-        .attr('y', y0)
-        .attr('rx', 5)
-        .attr('ry', 5);
+    if ((pwd == undefined || pwd.length == 0) && !no_pwd)
+        return;
 
-    btn_group.append('text')
-        .classed('svg-button-text', true)
-        .attr('id', function(d){ return 'btn-text-id-' + d })
-        .attr('x',function(d,i) {
-            return x0 + (b_w+b_space)*i + b_w/2;
-        })
-        .attr('y', y0 + b_h / 2)
-        .text(function(d){ return d == 'Review' ? 'Need review' :
-                                  d == 'Submit' ? 'Ready for submit' : d });
+    if (!load_user_settings(usr))
+        return;
 
-    d3_root.select('#btn-id-All').select('rect').classed('pressed', true);
+    // TODO: check all available projects
+    gerrit.login(settings.projects[0].host, settings.projects[0].path, usr, pwd, initialize);
+    return;
 }
 
 function get_all_changes() {
-    console.log('IN get_all_changes()');
-
     start_loading();
     create_changes_table();
 
@@ -213,8 +126,12 @@ function OpenGerritLink(link) {
 
 function create_changes_table(argument) {
     columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
-    var table = d3.select(document.body).select('#gerrit').append('table'),
+    var table = d3_root.select('#gerrit').append('table'),
         thead = table.append('thead');
+
+    table.classed('table', true);
+    table.classed('table-bordered', true);
+    table.classed('table-condensed', true);
     // append the header row
     thead.append('tr')
         .selectAll('th')
@@ -291,11 +208,11 @@ function update_changes_table(error, changes, host, path) {
         all_changes[data[i]['_number']] = {'sts': 'updating'};
         gerrit.get_change_details(host, path, data[i]['_number'], update_entry);
     }
-    d3_root.select('#btn-text-id-All').text('All (' + Object.keys(all_changes).length + ')');
+
+    d3_root.select('#all_num').text(Object.keys(all_changes).length);
 }
 
 function update_entry(data) {
-    // console.log('IN update_entry(', data, ')');
     var reviewed_by_user = false;
     var code_review = 0;
     var reviewers = {};
@@ -339,7 +256,7 @@ function update_entry(data) {
         .classed('user-is-owner', data.owner.name == settings.name);
 
     var num = d3_root.selectAll('.reviewed-by-user').size() + d3_root.selectAll('.user-is-owner').size();
-    d3_root.select('#btn-text-id-Review').text('Need review (' + (Object.keys(all_changes).length - num) + ')');
+    d3_root.select('#review_num').text(Object.keys(all_changes).length - num);
 
     if (settings.rules != undefined) {
         if (settings.rules.submit_ready != undefined) {
@@ -373,14 +290,20 @@ function update_entry(data) {
                     .classed('submit-ready', verified_ok && reviewers_ok);
 
                 var num = d3_root.selectAll('.submit-ready').size();
-                d3_root.select('#btn-text-id-Submit')
-                    .text('Ready for submit (' + num + ')');
+                d3_root.select('#submit_num').text(num);
             }
         }
     }
 
     all_changes[data['_number']]['sts'] = 'updated';
     updater_loading_status();
+}
+
+function filter_all() {
+    reset_filters();
+    d3_root.select('#nav_all').classed('active', true);
+    d3_root.select('#nav_review').classed('active', false);
+    d3_root.select('#nav_submit').classed('active', false);
 }
 
 // this function hides reviewed and "my" changes
@@ -390,6 +313,10 @@ function filter_reviewed() {
         .style('display', 'none');
     d3_root.selectAll('.user-is-owner')
         .style('display', 'none');
+
+    d3_root.select('#nav_all').classed('active', false);
+    d3_root.select('#nav_review').classed('active', true);
+    d3_root.select('#nav_submit').classed('active', false);
 }
 
 function filter_submit_ready() {
@@ -398,6 +325,10 @@ function filter_submit_ready() {
         .style('display', 'none');
     d3_root.selectAll('.submit-ready')
         .style('display', null);
+
+    d3_root.select('#nav_all').classed('active', false);
+    d3_root.select('#nav_review').classed('active', false);
+    d3_root.select('#nav_submit').classed('active', true);
 }
 
 function reset_filters() {
