@@ -41,8 +41,14 @@ function load_data() {
 }
 
 function refresh() {
-    d3_root.select('#gerrit').selectAll('*').remove();
     start_loading();
+    d3_root.select('#gerrit').selectAll('*').remove();
+
+    d3_root.selectAll('.reviewed-by-user').classed('reviewed-by-user', true);
+    d3_root.selectAll('.user-is-owner').classed('user-is-owner', true);
+    d3_root.selectAll('.submit-ready').classed('submit-ready', true);
+    update_filtering();
+
     reset_filters();
     get_all_changes();
 }
@@ -165,7 +171,8 @@ function update_changes_table(error, changes, host, path) {
                         .data(data)
                         .enter()
                             .append('tr')
-                            .attr('id', function(d) { return 'gid' + d['_number']; });
+                            .attr('id', function(d) { return 'gid' + d['_number']; })
+                            .classed('gerrit-change', true);
 
     var i = 0;
     // create a cell in each row for each column
@@ -245,9 +252,6 @@ function update_entry(data) {
     d3.select(document).select(id).html(code_review);
     id = '#V' + data['_number'] + '>span';
     d3.select(document).select(id).html(verified);
-
-    d3_root.select('#gid' + data['_number'])
-        .classed('gerrit-change', true);
 
     d3.select(document).select('#gid' + data['_number'])
         .classed('reviewed-by-user', reviewed_by_user);
