@@ -43,10 +43,11 @@ function load_data() {
 function refresh() {
     start_loading();
     d3_root.select('#gerrit').selectAll('*').remove();
+    all_changes = {};
 
-    d3_root.selectAll('.reviewed-by-user').classed('reviewed-by-user', true);
-    d3_root.selectAll('.user-is-owner').classed('user-is-owner', true);
-    d3_root.selectAll('.submit-ready').classed('submit-ready', true);
+    d3_root.selectAll('.reviewed-by-user').classed('reviewed-by-user', false);
+    d3_root.selectAll('.user-is-owner').classed('user-is-owner', false);
+    d3_root.selectAll('.submit-ready').classed('submit-ready', false);
     update_filtering();
 
     reset_filters();
@@ -160,7 +161,14 @@ function update_changes_table(error, changes, host, path) {
         document.getElementById('gerrit').innerHTML = error;
     }
 
-    data = changes;
+    var data = [];
+    for (var index in changes) {
+        if (changes[index]['_number'] in all_changes) {
+            continue;
+        }
+
+        data.push(changes[index]);
+    }
 
     columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
     var table = d3.select(document.body).select('#gerrit>table'),
