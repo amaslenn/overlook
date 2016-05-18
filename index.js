@@ -377,7 +377,7 @@ function update_filtering() {
 
     // defining number of changes per filter
     var num_all = Object.keys(all_changes).length;
-    var num_review = num_all - (d3_root.selectAll('.reviewed-by-user').size() + d3_root.selectAll('.user-is-owner').size());
+    var num_review = num_all - d3_root.selectAll('.reviewed-by-user, .user-is-owner').size();
     var num_submit = d3_root.selectAll('.submit-ready').size();
 
     // updating badges
