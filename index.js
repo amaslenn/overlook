@@ -219,9 +219,9 @@ function update_changes_table(error, changes, host, path) {
                 return d.value;
             });
 
-    for (i in data) {
-        all_changes[data[i]['_number']] = {'sts': 'updating'};
-        gerrit.get_change_details(host, path, data[i]['_number'], update_entry);
+    for (var index in data) {
+        all_changes[data[index]['_number']] = {'sts': 'updating'};
+        gerrit.get_change_details(host, path, data[index]['_number'], update_entry);
     }
 
     update_filtering();
@@ -231,6 +231,7 @@ function update_entry(data) {
     var reviewed_by_user = false;
     var code_review = 0;
     var reviewers = {};
+
     if (data['labels'] && data['labels']['Code-Review'] && data['labels']['Code-Review']['all']) {
         var cr = data['labels']['Code-Review']['all'];
         for (var i = cr.length - 1; i >= 0; i--) {
@@ -240,11 +241,10 @@ function update_entry(data) {
                 if (cr[i].name == settings.name)
                     reviewed_by_user = true;
             }
-
         }
     }
     if (code_review > 0)
-        code_review = '+' + code_review
+        code_review = '+' + code_review;
 
     var verified = 0;
     if (data['labels']['Verified']['all']) {
@@ -254,7 +254,7 @@ function update_entry(data) {
         }
     }
     if (verified > 0)
-        verified = '+' + verified
+        verified = '+' + verified;
 
     id = '#CR' + data['_number'] + '>span';
     d3_root.select(id).text(code_review);
