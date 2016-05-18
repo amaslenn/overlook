@@ -42,7 +42,7 @@ function load_data() {
 
 function refresh() {
     start_loading();
-    d3_root.select('#gerrit').selectAll('*').remove();
+    d3_root.select('#gerrit_changes').selectAll('tbody').remove();
     all_changes = {};
 
     d3_root.selectAll('.reviewed-by-user').classed('reviewed-by-user', false);
@@ -75,7 +75,7 @@ function check_login() {
 
 function get_all_changes() {
     start_loading();
-    create_changes_table();
+    d3_root.select('#gerrit_changes').classed('hide', false);
 
     for (var i = settings.projects.length - 1; i >= 0; i--) {
         host = settings.projects[i].host
@@ -114,8 +114,6 @@ function load_user_settings(user) {
 }
 
 function initialize(error, user) {
-    document.getElementById('gerrit').innerHTML = '';
-
     if (error) {
         document.getElementById('debug').innerHTML = '';
         document.getElementById('gerrit').innerHTML = 'Error!';
@@ -129,30 +127,6 @@ function initialize(error, user) {
 function OpenGerritLink(link) {
     open(link);
     return 0;
-}
-
-function create_changes_table(argument) {
-    columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
-    var table = d3_root.select('#gerrit').append('table'),
-        thead = table.append('thead');
-
-    table.classed('table', true);
-    table.classed('table-bordered', true);
-    table.classed('table-condensed', true);
-    // append the header row
-    thead.append('tr')
-        .selectAll('th')
-        .data(columns)
-            .enter()
-            .append('th')
-                .attr('data-title', function(column) { return column; })
-                .html(function(column) {
-                    return column == '_number' ? 'ID' :
-                           column == 'subject' ? 'Subject' :
-                           column == 'project' ? 'Project' :
-                           column == 'review'  ? 'Review'  :
-                           column == 'owner'   ? 'Owner'   : column;
-                });
 }
 
 function update_changes_table(error, changes, host, path) {
@@ -171,7 +145,7 @@ function update_changes_table(error, changes, host, path) {
     }
 
     columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
-    var table = d3_root.select('#gerrit>table'),
+    var table = d3_root.select('#gerrit_changes'),
         tbody = table.append('tbody');
 
     // create a row for each object in the data
