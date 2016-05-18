@@ -171,7 +171,7 @@ function update_changes_table(error, changes, host, path) {
     }
 
     columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
-    var table = d3.select(document.body).select('#gerrit>table'),
+    var table = d3_root.select('#gerrit>table'),
         tbody = table.append('tbody');
 
     // create a row for each object in the data
@@ -257,14 +257,14 @@ function update_entry(data) {
         verified = '+' + verified
 
     id = '#CR' + data['_number'] + '>span';
-    d3.select(document).select(id).html(code_review);
+    d3_root.select(id).text(code_review);
     id = '#V' + data['_number'] + '>span';
-    d3.select(document).select(id).html(verified);
+    d3_root.select(id).text(verified);
 
-    d3.select(document).select('#gid' + data['_number'])
+    d3_root.select('#gid' + data['_number'])
         .classed('reviewed-by-user', reviewed_by_user);
 
-    d3.select(document).select('#gid' + data['_number'])
+    d3_root.select('#gid' + data['_number'])
         .classed('user-is-owner', data.owner.name == settings.name);
 
     if (settings.rules != undefined) {
