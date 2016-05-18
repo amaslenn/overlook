@@ -209,7 +209,7 @@ function update_changes_table(error, changes, host, path) {
         gerrit.get_change_details(host, path, data[i]['_number'], update_entry);
     }
 
-    d3_root.select('#all_num').text(Object.keys(all_changes).length);
+    update_filtering();
 }
 
 function update_entry(data) {
@@ -255,9 +255,6 @@ function update_entry(data) {
     d3.select(document).select('#gid' + data['_number'])
         .classed('user-is-owner', data.owner.name == settings.name);
 
-    var num = d3_root.selectAll('.reviewed-by-user').size() + d3_root.selectAll('.user-is-owner').size();
-    d3_root.select('#review_num').text(Object.keys(all_changes).length - num);
-
     if (settings.rules != undefined) {
         if (settings.rules.submit_ready != undefined) {
             for (var index in settings.rules.submit_ready) {
@@ -294,8 +291,7 @@ function update_entry(data) {
                 d3_root.select('#gid' + data['_number'])
                     .classed('submit-ready', verified_ok && reviewers_ok);
 
-                var num = d3_root.selectAll('.submit-ready').size();
-                d3_root.select('#submit_num').text(num);
+                update_filtering();
             }
         }
     }
@@ -309,50 +305,37 @@ function filter_all() {
     d3_root.select('#nav_all').classed('active', true);
     d3_root.select('#nav_review').classed('active', false);
     d3_root.select('#nav_submit').classed('active', false);
+
+    update_filtering();
 }
 
 // this function hides reviewed and "my" changes
 function filter_reviewed() {
     reset_filters();
-    d3_root.selectAll('.reviewed-by-user')
-        .style('display', 'none');
-    d3_root.selectAll('.user-is-owner')
-        .style('display', 'none');
 
     d3_root.select('#nav_all').classed('active', false);
     d3_root.select('#nav_review').classed('active', true);
     d3_root.select('#nav_submit').classed('active', false);
+
+    update_filtering();
 }
 
 function filter_submit_ready() {
     reset_filters();
-    d3_root.selectAll('.gerrit-change')
-        .style('display', 'none');
-    d3_root.selectAll('.submit-ready')
-        .style('display', null);
 
     d3_root.select('#nav_all').classed('active', false);
     d3_root.select('#nav_review').classed('active', false);
     d3_root.select('#nav_submit').classed('active', true);
+
+    update_filtering();
 }
 
 function reset_filters() {
-    d3_root.selectAll('.gerrit-change')
-        .style('display', null);
-
-    // update tabs' labels
-    var num = d3_root.selectAll('.submit-ready').size();
-    d3_root.select('#btn-text-id-Submit')
-        .text('Ready for submit' + (num ? ' (' + num + ')' : ''));
-    num = Object.keys(all_changes).length;
-    num = num - (d3_root.selectAll('.user-is-owner').size() + d3_root.selectAll('.reviewed-by-user').size());
-    d3_root.select('#btn-text-id-Review')
-        .text('Need review' + (num ? ' (' + num + ')' : ''));
+    update_filtering()
 }
 
 function start_loading() {
-    if (!d3_root.select('#loader').classed('loader'))
-        d3_root.select('#loader').classed('loader', true);
+    d3_root.select('#loader').classed('loader', true);
 }
 
 function updater_loading_status() {
@@ -366,4 +349,35 @@ function updater_loading_status() {
 
     if (in_progress != showed)
         d3_root.select('#loader').classed('loader', in_progress);
+
+    update_filtering();
+}
+
+function update_filtering() {
+    // getting currently selected tab
+    var is_all_active = d3_root.select('#nav_all').classed('active');
+    var is_review_active = d3_root.select('#nav_review').classed('active');
+    var is_submit_active = d3_root.select('#nav_submit').classed('active');
+
+    // defining number of changes per filter
+    var num_all = Object.keys(all_changes).length;
+    var num_review = num_all - (d3_root.selectAll('.reviewed-by-user').size() + d3_root.selectAll('.user-is-owner').size());
+    var num_submit = d3_root.selectAll('.submit-ready').size();
+
+    // updating badges
+    d3_root.select('#all_num').text(num_all);
+    d3_root.select('#review_num').text(num_review);
+    d3_root.select('#submit_num').text(num_submit);
+
+    // hide some changes
+    if (is_all_active) {
+        d3_root.selectAll('.gerrit-change').classed('hide', false);
+    } else if (is_review_active) {
+        d3_root.selectAll('.gerrit-change').classed('hide', false);
+        d3_root.selectAll('.reviewed-by-user').classed('hide', true);
+        d3_root.selectAll('.user-is-owner').classed('hide', true);
+    } else if (is_submit_active) {
+        d3_root.selectAll('.gerrit-change').classed('hide', true);
+        d3_root.selectAll('.submit-ready').classed('hide', false);
+    }
 }
