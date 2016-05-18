@@ -279,9 +279,13 @@ function update_entry(data) {
                     for (var index in rule.required_reviewers) {
                         var r = rule.required_reviewers[index];
 
-                        // owner can't be required reviewer
-                        if (r == data.owner.name)
+                        // owner can't be required reviewer...
+                        if (r == data.owner.name) {
+                            // ... but his/her vote is important
+                            if (r in reviewers && reviewers[r] <= 0)
+                                reviewers_ok = false;
                             continue;
+                        }
 
                         if (!(r in reviewers) || reviewers[r] <= 0)
                             reviewers_ok = false;
