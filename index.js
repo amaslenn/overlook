@@ -104,8 +104,9 @@ function load_user_settings(user) {
         }
     }
 
-    if (!settings[user] || !settings[user].projects) {
-        document.getElementById('gerrit').innerHTML = 'No projects for ' + user;
+    if (!settings[user] || settings[user].projects == undefined ||
+        !settings[user].projects.length) {
+        show_error('No projects for ' + user);
         return false;
     }
     settings = settings[user];
@@ -115,9 +116,7 @@ function load_user_settings(user) {
 
 function initialize(error, user) {
     if (error) {
-        document.getElementById('debug').innerHTML = '';
-        document.getElementById('gerrit').innerHTML = 'Error!';
-        document.getElementById('pwd').value = ''
+        show_error(error);
         return;
     }
 
@@ -130,9 +129,8 @@ function OpenGerritLink(link) {
 }
 
 function update_changes_table(error, changes, host, path) {
-    document.getElementById('debug').innerHTML = '';
     if (error) {
-        document.getElementById('gerrit').innerHTML = error;
+        show_error(error);
     }
 
     var data = [];
@@ -370,4 +368,8 @@ function update_filtering() {
         d3_root.selectAll('.gerrit-change').classed('hide', true);
         d3_root.selectAll('.submit-ready').classed('hide', false);
     }
+}
+
+function show_error(error) {
+    d3_root.select('#debug').html(error);
 }
