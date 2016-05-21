@@ -223,7 +223,7 @@ function update_entry(data) {
         code_review = '+' + code_review;
 
     var verified = 0;
-    if (data['labels']['Verified']['all']) {
+    if (data['labels'] && data['labels']['Verified'] && data['labels']['Verified']['all']) {
         for (var i = data['labels']['Verified']['all'].length - 1; i >= 0; i--) {
             if (data['labels']['Verified']['all'][i].value)
                 verified += data['labels']['Verified']['all'][i].value
