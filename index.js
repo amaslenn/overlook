@@ -130,7 +130,11 @@ function OpenGerritLink(link) {
 
 function update_changes_table(error, changes, host, path) {
     if (error) {
+        d3_root.select('#gerrit_changes').classed('hide', true);
+        all_changes = {};
+        updater_loading_status();
         show_error(error);
+        return;
     }
 
     var data = [];
