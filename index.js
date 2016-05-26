@@ -280,8 +280,16 @@ function update_entry(data) {
                     }
                 }
 
+                var no_minus_two = true;
+                for (var r in reviewers) {
+                    if (reviewers[r] == -2) {
+                        no_minus_two = false;
+                        break;
+                    }
+                }
+
                 d3_root.select('#gid' + data['_number'])
-                    .classed('submit-ready', verified_ok && reviewers_ok);
+                    .classed('submit-ready', verified_ok && reviewers_ok && no_minus_two);
 
                 update_filtering();
             }
