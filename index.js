@@ -288,8 +288,21 @@ function update_entry(data) {
                     }
                 }
 
+                var has_user_plus_two = true;
+                if (rule.has_user_plus_two != undefined) {
+                    for (var index in rule.has_user_plus_two) {
+                        var r = rule.has_user_plus_two[index];
+                        if (r in reviewers) {
+                            if (reviewers[r] != 2)
+                                has_user_plus_two = false;
+                        } else {
+                            has_user_plus_two = false;
+                        }
+                    }
+                }
+
                 d3_root.select('#gid' + data['_number'])
-                    .classed('submit-ready', verified_ok && reviewers_ok && no_minus_two);
+                    .classed('submit-ready', verified_ok && reviewers_ok && no_minus_two && has_user_plus_two);
 
                 update_filtering();
             }
