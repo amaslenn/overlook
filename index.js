@@ -301,8 +301,11 @@ function update_entry(data) {
                     }
                 }
 
-                d3_root.select('#gid' + data['_number'])
-                    .classed('submit-ready', verified_ok && reviewers_ok && no_minus_two && has_user_plus_two);
+                // Only add class.
+                // When changes are refreshed (or initialized), all classes are wiped out.
+                if (verified_ok && reviewers_ok && no_minus_two && has_user_plus_two)
+                    d3_root.select('#gid' + data['_number'])
+                        .classed('submit-ready', true);
 
                 update_filtering();
             }
