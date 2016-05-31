@@ -12,8 +12,6 @@ var settings = {};
 var d3_root;
 var all_changes = {};
 
-// win.showDevTools();
-
 win.on('minimize', function() {
     this.hide();
 
@@ -206,14 +204,18 @@ function update_changes_table(error, changes, host, path) {
 function update_entry(data) {
     var reviewed_by_user = false;
     var code_review = 0;
-    var reviewers = {};
+    var reviews = {};
 
     if (data['labels'] && data['labels']['Code-Review'] && data['labels']['Code-Review']['all']) {
         var cr = data['labels']['Code-Review']['all'];
         for (var i = cr.length - 1; i >= 0; i--) {
             if (cr[i].value) {
                 code_review += cr[i].value;
-                reviewers[cr[i].name] = cr[i].value;
+                if (! (cr[i].name in reviews)) {
+                    reviews[cr[i].name] = {};
+                }
+                reviews[cr[i].name]['value'] = cr[i].value;
+                reviews[cr[i].name]['avatar_url'] = cr[i].avatars[0].url;
                 if (cr[i].name == settings.name)
                     reviewed_by_user = true;
             }
@@ -232,8 +234,16 @@ function update_entry(data) {
     if (verified > 0)
         verified = '+' + verified;
 
-    id = '#CR' + data['_number'] + '>span';
-    d3_root.select(id).text(code_review);
+    var id = '#CR' + data['_number'] + '>span';
+    d3_root.select(id).classed('review', true);
+    var cr = '<span class="review_sum">' + code_review + '</span>';
+    for (var r in reviews) {
+        cr += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
+                ' title="' + (reviews[r].value > 0 ? '+' : '') + reviews[r].value + ' by ' + r + '">' +
+                '<span class="review_one_val ' + (reviews[r].value > 0 ? 'review_good' : 'review_bad') +
+                '"></span></span>';
+    }
+    d3_root.select(id).html(cr);
     id = '#V' + data['_number'] + '>span';
     d3_root.select(id).text(verified);
 
@@ -270,19 +280,19 @@ function update_entry(data) {
                         // owner can't be required reviewer...
                         if (r == data.owner.name) {
                             // ... but his/her vote is important
-                            if (r in reviewers && reviewers[r] <= 0)
+                            if (r in reviews && reviews[r].value <= 0)
                                 reviewers_ok = false;
                             continue;
                         }
 
-                        if (!(r in reviewers) || reviewers[r] <= 0)
+                        if (!(r in reviews) || reviews[r].value <= 0)
                             reviewers_ok = false;
                     }
                 }
 
                 var no_minus_two = true;
-                for (var r in reviewers) {
-                    if (reviewers[r] == -2) {
+                for (var r in reviews) {
+                    if (reviews[r].value == -2) {
                         no_minus_two = false;
                         break;
                     }
@@ -292,8 +302,8 @@ function update_entry(data) {
                 if (rule.has_user_plus_two != undefined) {
                     for (var index in rule.has_user_plus_two) {
                         var r = rule.has_user_plus_two[index];
-                        if (r in reviewers) {
-                            if (reviewers[r] != 2)
+                        if (r in reviews) {
+                            if (reviews[r].value != 2)
                                 has_user_plus_two = false;
                         } else {
                             has_user_plus_two = false;

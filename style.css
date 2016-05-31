@@ -65,3 +65,36 @@ img.avatar {
     -webkit-transform: rotate(360deg);
   }
 }
+.review {
+    white-space: nowrap;
+}
+.review_sum {
+    margin-right: 4px;
+    font-weight: bold;
+}
+.review_one {
+    position: relative;
+    margin-right: 5px;
+}
+.review_one .avatar {
+    float: none;
+    top: 0;
+    margin-top: -2px;
+}
+.review_one_val {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-radius: 50%;
+    margin-right: -5px;
+    width: 11px;
+    height: 11px;
+    display: inline-block;
+    margin-top: -2px;
+}
+.review_good {
+    background: #3CAA3C;
+}
+.review_bad {
+    background: #AB343A;
+}
