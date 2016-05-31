@@ -50,7 +50,7 @@ img.avatar {
     dominant-baseline: central;
     fill: black;
 }
-#refresh_btn {
+.refresh {
     float: right;
 }
 .loader {
