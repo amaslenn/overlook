@@ -241,7 +241,7 @@ function update_entry(data) {
         cr += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
                 ' title="' + (reviews[r].value > 0 ? '+' : '') + reviews[r].value + ' by ' + r + '">' +
                 '<span class="review_one_val ' + (reviews[r].value > 0 ? 'review_good' : 'review_bad') +
-                '"></span></span>';
+                '">' + (reviews[r].value > 0 ? '+' : '–') + '</span></span>';
     }
     d3_root.select(id).html(cr);
     id = '#V' + data['_number'] + '>span';
