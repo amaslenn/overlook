@@ -13,14 +13,14 @@ var d3_root;
 var all_changes = {};
 
 win.on('minimize', function() {
-    this.hide();
+    win.hide();
 
     tray = new gui.Tray({ title: 'Overlook', icon: 'shield-warning.png' });
     tray.tooltip = 'Overlook';
 
     tray.on('click', function() {
         win.show();
-        this.remove();
+        win.focus();
         tray = null;
     });
 });
