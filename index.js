@@ -298,19 +298,19 @@ function update_entry(data) {
                         // owner can't be required reviewer...
                         if (r == data.owner.name) {
                             // ... but his/her vote is important
-                            if (r in reviews && reviews[r].value <= 0)
+                            if (r in reviews && reviews[r]['cr'].value <= 0)
                                 reviewers_ok = false;
                             continue;
                         }
 
-                        if (!(r in reviews) || reviews[r].value <= 0)
+                        if (!(r in reviews) || reviews[r]['cr'].value <= 0)
                             reviewers_ok = false;
                     }
                 }
 
                 var no_minus_two = true;
                 for (var r in reviews) {
-                    if (reviews[r].value == -2) {
+                    if (reviews[r]['cr'].value == -2) {
                         no_minus_two = false;
                         break;
                     }
@@ -321,7 +321,7 @@ function update_entry(data) {
                     for (var index in rule.has_user_plus_two) {
                         var r = rule.has_user_plus_two[index];
                         if (r in reviews) {
-                            if (reviews[r].value != 2)
+                            if (reviews[r]['cr'].value != 2)
                                 has_user_plus_two = false;
                         } else {
                             has_user_plus_two = false;
