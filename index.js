@@ -212,10 +212,10 @@ function update_entry(data) {
             if (cr[i].value) {
                 code_review += cr[i].value;
                 if (! (cr[i].name in reviews)) {
-                    reviews[cr[i].name] = {};
+                    reviews[cr[i].name] = {'cr': {}, 'v': {}};
+                    reviews[cr[i].name]['avatar_url'] = cr[i].avatars[0].url;
                 }
-                reviews[cr[i].name]['value'] = cr[i].value;
-                reviews[cr[i].name]['avatar_url'] = cr[i].avatars[0].url;
+                reviews[cr[i].name]['cr']['value'] = cr[i].value;
                 if (cr[i].name == settings.name)
                     reviewed_by_user = true;
             }
@@ -226,26 +226,44 @@ function update_entry(data) {
 
     var verified = 0;
     if (data['labels'] && data['labels']['Verified'] && data['labels']['Verified']['all']) {
-        for (var i = data['labels']['Verified']['all'].length - 1; i >= 0; i--) {
-            if (data['labels']['Verified']['all'][i].value)
-                verified += data['labels']['Verified']['all'][i].value
+        var v = data['labels']['Verified']['all'];
+        for (var i = v.length - 1; i >= 0; i--) {
+            if (v[i].value) {
+                verified += v[i].value;
+                if (! (v[i].name in reviews)) {
+                    reviews[v[i].name] = {'cr': {}, 'v': {}};
+                    reviews[v[i].name]['avatar_url'] = v[i].avatars[0].url;
+                }
+                reviews[v[i].name]['v']['value'] = v[i].value;
+            }
         }
     }
     if (verified > 0)
         verified = '+' + verified;
 
+    var cr = '<span class="review_sum">' + code_review + '</span>';
+    var v = '<span class="review_sum">' + verified + '</span>';
+    for (var r in reviews) {
+        if ('value' in reviews[r]['cr']) {
+            cr += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
+                    ' title="' + (reviews[r]['cr'].value > 0 ? '+' : '') + reviews[r]['cr'].value + ' by ' + r + '">' +
+                    '<span class="review_one_val ' + (reviews[r]['cr'].value > 0 ? 'review_good' : 'review_bad') +
+                    '">' + (reviews[r]['cr'].value > 0 ? '+' : '–') + '</span></span>';
+        }
+        if ('value' in reviews[r]['v']) {
+            v += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
+                    ' title="' + (reviews[r]['v'].value > 0 ? '+' : '') + reviews[r]['v'].value + ' by ' + r + '">' +
+                    '<span class="review_one_val ' + (reviews[r]['v'].value > 0 ? 'review_good' : 'review_bad') +
+                    '">' + (reviews[r]['v'].value > 0 ? '+' : '–') + '</span></span>';
+        }
+    }
+
     var id = '#CR' + data['_number'] + '>span';
     d3_root.select(id).classed('review', true);
-    var cr = '<span class="review_sum">' + code_review + '</span>';
-    for (var r in reviews) {
-        cr += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
-                ' title="' + (reviews[r].value > 0 ? '+' : '') + reviews[r].value + ' by ' + r + '">' +
-                '<span class="review_one_val ' + (reviews[r].value > 0 ? 'review_good' : 'review_bad') +
-                '">' + (reviews[r].value > 0 ? '+' : '–') + '</span></span>';
-    }
     d3_root.select(id).html(cr);
+
     id = '#V' + data['_number'] + '>span';
-    d3_root.select(id).text(verified);
+    d3_root.select(id).html(v);
 
     d3_root.select('#gid' + data['_number'])
         .classed('reviewed-by-user', reviewed_by_user);
