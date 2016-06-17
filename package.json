@@ -12,8 +12,8 @@
     "toolbar": false,
     "icon": "shield-warning.png",
     "position": "center",
-    "width": 900,
-    "height": 600
+    "width": 1100,
+    "height": 650
   },
   "dependencies": {
     "bootstrap": "^3.3.6",
