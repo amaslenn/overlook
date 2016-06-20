@@ -164,10 +164,9 @@ function update_changes_table(error, changes, host, path) {
                 obj = {
                     column: column,
                     value: row[column],
-                    gid: row['_number']
+                    gid: row['_number'],
+                    branch: row['branch']
                 };
-                if (column == 'created' || column == 'updated')
-                    obj.value = (new Date(row[column])).toLocaleString();
                 if (column == 'owner') {
                     var owner = '<img class="avatar" src="' + row.owner.avatars[0].url + '"' +
                                 ' title="' + row.owner.name + '"' +
@@ -184,11 +183,12 @@ function update_changes_table(error, changes, host, path) {
             .html(function(d) {
                 if (d.column == 'id') {
                     return '<span>' + (++i) + '</span>';
-                }
-                if (d.column == '_number') {
+                } else if (d.column == '_number') {
                     var link = 'https://' + host + (path ? '/' + path + '/' : '/') + '#/c/' + d.value;
                     return "<a href=javascript:void(0); onclick=\"OpenGerritLink('" + link + "');\"" + "\">"
                            + d.value + "</a>";
+                } else if (d.column == 'project') {
+                    return d.value + ' (' + d.branch + ')';
                 }
                 return d.value;
             });
