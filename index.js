@@ -292,6 +292,7 @@ function update_entry(data) {
 
                 var reviewers_ok = true;
                 if (rule.required_reviewers != undefined) {
+                    // check mandatory reviewers scores
                     for (var index in rule.required_reviewers) {
                         var r = rule.required_reviewers[index];
 
@@ -305,6 +306,13 @@ function update_entry(data) {
 
                         if (!(r in reviews) || reviews[r]['cr'].value <= 0)
                             reviewers_ok = false;
+                    }
+
+                    // check all reviewers scores
+                    for (var r in reviews) {
+                        if ('value' in reviews[r]['cr'] && reviews[r]['cr'].value < 0) {
+                            reviewers_ok = false;
+                        }
                     }
                 }
 
