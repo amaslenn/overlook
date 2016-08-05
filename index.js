@@ -83,11 +83,20 @@ function get_all_changes() {
     d3_root.select('#gerrit_changes').classed('hide', false);
 
     for (var i = settings.projects.length - 1; i >= 0; i--) {
-        host = settings.projects[i].host
-        path = settings.projects[i].path
+        host = settings.projects[i].host;
+        path = settings.projects[i].path;
         for (var j = settings.projects[i].queries.length - 1; j >= 0; j--) {
-            query = settings.projects[i].queries[j]
-            gerrit.query_changes(host, path, query, update_changes_table);
+            query = settings.projects[i].queries[j];
+            gerrit.query_changes(host, path, query)
+            .then(function(res) {
+                update_changes_table(res.json, res.host, res.path);
+            })
+            .catch(function(e) {
+                d3_root.select('#gerrit_changes').classed('hide', true);
+                all_changes = {};
+                updater_loading_status();
+                show_error(error);
+            });
         }
     }
 }
@@ -129,15 +138,7 @@ function OpenGerritLink(link) {
     return 0;
 }
 
-function update_changes_table(error, changes, host, path) {
-    if (error) {
-        d3_root.select('#gerrit_changes').classed('hide', true);
-        all_changes = {};
-        updater_loading_status();
-        show_error(error);
-        return;
-    }
-
+function update_changes_table(changes, host, path) {
     var data = [];
     for (var index in changes) {
         if (changes[index]['_number'] in all_changes) {
