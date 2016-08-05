@@ -4,6 +4,7 @@ var d3 = require('d3');
 var open = require('open');
 var yaml = require('js-yaml');
 var fs = require('fs');
+var Promise = require('promise');
 
 
 var win = gui.Window.get();
@@ -67,7 +68,13 @@ function check_login() {
         return;
 
     // TODO: check all available projects
-    gerrit.login(settings.projects[0].host, settings.projects[0].path, usr, pwd, initialize);
+    gerrit.login(settings.projects[0].host, settings.projects[0].path, usr, pwd)
+    .then(initialize)
+    .catch(function(e) {
+        show_error(e);
+        return;
+    });
+
     return;
 }
 
@@ -112,12 +119,8 @@ function load_user_settings(user) {
     return true;
 }
 
-function initialize(error, user) {
-    if (error) {
-        show_error(error);
-        return;
-    }
-
+function initialize() {
+    d3_root.select('#debug').html('');
     d3_root.select('#login_btn').attr('disabled', null);
 }
 
