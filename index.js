@@ -199,7 +199,13 @@ function update_changes_table(changes, host, path) {
 
     for (var index in data) {
         all_changes[data[index]['_number']] = {'sts': 'updating'};
-        gerrit.get_change_details(host, path, data[index]['_number'], update_entry);
+        gerrit.get_change_details(host, path, data[index]['_number'])
+        .then(function(data) {
+            update_entry(data);
+        })
+        .catch(function(error) {
+            show_error(error);
+        })
     }
 
     update_filtering();
