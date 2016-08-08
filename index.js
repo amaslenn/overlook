@@ -212,21 +212,11 @@ function update_entry(data) {
     var code_review = 0;
     var reviews = {};
 
-    if (data['labels'] && data['labels']['Code-Review'] && data['labels']['Code-Review']['all']) {
-        var cr = data['labels']['Code-Review']['all'];
-        for (var i = cr.length - 1; i >= 0; i--) {
-            if (cr[i].value) {
-                code_review += cr[i].value;
-                if (! (cr[i].name in reviews)) {
-                    reviews[cr[i].name] = {'cr': {}, 'v': {}};
-                    reviews[cr[i].name]['avatar_url'] = cr[i].avatars[0].url;
-                }
-                reviews[cr[i].name]['cr']['value'] = cr[i].value;
-                if (cr[i].name == settings.name)
-                    reviewed_by_user = true;
-            }
-        }
-    }
+    var change = all_changes[data['_number']]['obj'];
+
+    change.update_code_review(data);
+    reviewed_by_user = change.reviewed_by(settings.name);
+    code_review = change.get_code_review_sum();
     if (code_review > 0)
         code_review = '+' + code_review;
 
@@ -248,14 +238,15 @@ function update_entry(data) {
         verified = '+' + verified;
 
     var cr = '<span class="review_sum">' + code_review + '</span>';
+    var rev = change.get_code_reviews();
+    for (var r in rev) {
+        cr += '<span class="review_one"><img class="avatar" src="' + rev[r].avatar_url + '"' +
+                ' title="' + (rev[r].value > 0 ? '+' : '') + rev[r].value + ' by ' + r + '">' +
+                '<span class="review_one_val ' + (rev[r].value > 0 ? 'review_good' : 'review_bad') +
+                '">' + (rev[r].value > 0 ? '+' : '–') + '</span></span>';
+    }
     var v = '<span class="review_sum">' + verified + '</span>';
     for (var r in reviews) {
-        if ('value' in reviews[r]['cr']) {
-            cr += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
-                    ' title="' + (reviews[r]['cr'].value > 0 ? '+' : '') + reviews[r]['cr'].value + ' by ' + r + '">' +
-                    '<span class="review_one_val ' + (reviews[r]['cr'].value > 0 ? 'review_good' : 'review_bad') +
-                    '">' + (reviews[r]['cr'].value > 0 ? '+' : '–') + '</span></span>';
-        }
         if ('value' in reviews[r]['v']) {
             v += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
                     ' title="' + (reviews[r]['v'].value > 0 ? '+' : '') + reviews[r]['v'].value + ' by ' + r + '">' +
