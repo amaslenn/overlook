@@ -141,12 +141,12 @@ function OpenGerritLink(link) {
 
 function update_changes_table(changes, host, path) {
     var data = [];
-    for (var index in changes) {
-        if (changes[index]['_number'] in all_changes) {
+    for (var ch of changes) {
+        if (ch['_number'] in all_changes) {
             continue;
         }
 
-        var c = new Change(changes[index]);
+        var c = new Change(ch);
         all_changes[c._number] = {'obj': c, 'sts': 'updating'};
         data.push(c);
     }
@@ -200,10 +200,10 @@ function update_changes_table(changes, host, path) {
                 return d.value;
             });
 
-    for (var index in data) {
-        gerrit.get_change_details(host, path, data[index]['_number'])
-        .then(function(data) {
-            update_entry(data);
+    for (var ch of data) {
+        gerrit.get_change_details(host, path, ch['_number'])
+        .then(function(d) {
+            update_entry(d);
         })
         .catch(function(error) {
             show_error(error);
@@ -263,9 +263,7 @@ function update_entry(data) {
 
     if (settings.rules != undefined) {
         if (settings.rules.submit_ready != undefined) {
-            for (var index in settings.rules.submit_ready) {
-                var rule = settings.rules.submit_ready[index];
-
+            for (var rule of settings.rules.submit_ready) {
                 // project is mandatory
                 if (rule.project != undefined) {
                     if (rule.project != data.project)
@@ -283,9 +281,7 @@ function update_entry(data) {
                 var reviewers_ok = true;
                 if (rule.required_reviewers != undefined) {
                     // check mandatory reviewers scores
-                    for (var index in rule.required_reviewers) {
-                        var r = rule.required_reviewers[index];
-
+                    for (var r of rule.required_reviewers) {
                         // owner can't be required reviewer...
                         if (r == data.owner.name) {
                             // ... but his/her vote is important
@@ -316,8 +312,7 @@ function update_entry(data) {
 
                 var has_user_plus_two = true;
                 if (rule.has_user_plus_two != undefined) {
-                    for (var index in rule.has_user_plus_two) {
-                        var r = rule.has_user_plus_two[index];
+                    for (var r of rule.has_user_plus_two) {
                         if (r in cr_rev) {
                             if (cr_rev[r].value != 2)
                                 has_user_plus_two = false;
