@@ -238,12 +238,12 @@ function update_entry(data) {
         verified = '+' + verified;
 
     var cr = '<span class="review_sum">' + code_review + '</span>';
-    var rev = change.get_code_reviews();
-    for (var r in rev) {
-        cr += '<span class="review_one"><img class="avatar" src="' + rev[r].avatar_url + '"' +
-                ' title="' + (rev[r].value > 0 ? '+' : '') + rev[r].value + ' by ' + r + '">' +
-                '<span class="review_one_val ' + (rev[r].value > 0 ? 'review_good' : 'review_bad') +
-                '">' + (rev[r].value > 0 ? '+' : '–') + '</span></span>';
+    var cr_rev = change.get_code_reviews();
+    for (var r in cr_rev) {
+        cr += '<span class="review_one"><img class="avatar" src="' + cr_rev[r].avatar_url + '"' +
+                ' title="' + (cr_rev[r].value > 0 ? '+' : '') + cr_rev[r].value + ' by ' + r + '">' +
+                '<span class="review_one_val ' + (cr_rev[r].value > 0 ? 'review_good' : 'review_bad') +
+                '">' + (cr_rev[r].value > 0 ? '+' : '–') + '</span></span>';
     }
     var v = '<span class="review_sum">' + verified + '</span>';
     for (var r in reviews) {
@@ -296,26 +296,26 @@ function update_entry(data) {
                         // owner can't be required reviewer...
                         if (r == data.owner.name) {
                             // ... but his/her vote is important
-                            if (r in reviews && reviews[r]['cr'].value <= 0)
+                            if (r in cr_rev && cr_rev[r].value <= 0)
                                 reviewers_ok = false;
                             continue;
                         }
 
-                        if (!(r in reviews) || reviews[r]['cr'].value <= 0)
+                        if (!(r in cr_rev) || cr_rev[r].value <= 0)
                             reviewers_ok = false;
                     }
 
                     // check all reviewers scores
-                    for (var r in reviews) {
-                        if ('value' in reviews[r]['cr'] && reviews[r]['cr'].value < 0) {
+                    for (var r in cr_rev) {
+                        if (cr_rev[r].value < 0) {
                             reviewers_ok = false;
                         }
                     }
                 }
 
                 var no_minus_two = true;
-                for (var r in reviews) {
-                    if (reviews[r]['cr'].value == -2) {
+                for (var r in cr_rev) {
+                    if (cr_rev[r].value == -2) {
                         no_minus_two = false;
                         break;
                     }
@@ -325,8 +325,8 @@ function update_entry(data) {
                 if (rule.has_user_plus_two != undefined) {
                     for (var index in rule.has_user_plus_two) {
                         var r = rule.has_user_plus_two[index];
-                        if (r in reviews) {
-                            if (reviews[r]['cr'].value != 2)
+                        if (r in cr_rev) {
+                            if (cr_rev[r].value != 2)
                                 has_user_plus_two = false;
                         } else {
                             has_user_plus_two = false;
