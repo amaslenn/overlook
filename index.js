@@ -5,6 +5,7 @@ var open = require('open');
 var yaml = require('js-yaml');
 var fs = require('fs');
 var Promise = require('promise');
+var Change = require('./lib/change');
 
 
 var win = gui.Window.get();
@@ -145,7 +146,9 @@ function update_changes_table(changes, host, path) {
             continue;
         }
 
-        data.push(changes[index]);
+        var c = new Change(changes[index]);
+        all_changes[c._number] = {'obj': c, 'sts': 'updating'};
+        data.push(c);
     }
 
     columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
@@ -198,7 +201,6 @@ function update_changes_table(changes, host, path) {
             });
 
     for (var index in data) {
-        all_changes[data[index]['_number']] = {'sts': 'updating'};
         gerrit.get_change_details(host, path, data[index]['_number'])
         .then(function(data) {
             update_entry(data);
@@ -212,62 +214,40 @@ function update_changes_table(changes, host, path) {
 }
 
 function update_entry(data) {
-    var reviewed_by_user = false;
-    var code_review = 0;
-    var reviews = {};
+    var change = all_changes[data['_number']]['obj'];
 
-    if (data['labels'] && data['labels']['Code-Review'] && data['labels']['Code-Review']['all']) {
-        var cr = data['labels']['Code-Review']['all'];
-        for (var i = cr.length - 1; i >= 0; i--) {
-            if (cr[i].value) {
-                code_review += cr[i].value;
-                if (! (cr[i].name in reviews)) {
-                    reviews[cr[i].name] = {'cr': {}, 'v': {}};
-                    reviews[cr[i].name]['avatar_url'] = cr[i].avatars[0].url;
-                }
-                reviews[cr[i].name]['cr']['value'] = cr[i].value;
-                if (cr[i].name == settings.name)
-                    reviewed_by_user = true;
-            }
-        }
-    }
+    // get Core-Review/Verified values
+    change.update_code_review(data);
+    var reviewed_by_user = change.reviewed_by(settings.name);
+    var code_review = change.get_code_review_sum();
     if (code_review > 0)
         code_review = '+' + code_review;
 
-    var verified = 0;
-    if (data['labels'] && data['labels']['Verified'] && data['labels']['Verified']['all']) {
-        var v = data['labels']['Verified']['all'];
-        for (var i = v.length - 1; i >= 0; i--) {
-            if (v[i].value) {
-                verified += v[i].value;
-                if (! (v[i].name in reviews)) {
-                    reviews[v[i].name] = {'cr': {}, 'v': {}};
-                    reviews[v[i].name]['avatar_url'] = v[i].avatars[0].url;
-                }
-                reviews[v[i].name]['v']['value'] = v[i].value;
-            }
-        }
-    }
+    change.update_verified(data);
+    var verified = change.get_verified_sum();
     if (verified > 0)
         verified = '+' + verified;
 
+    // show reviews
     var cr = '<span class="review_sum">' + code_review + '</span>';
-    var v = '<span class="review_sum">' + verified + '</span>';
-    for (var r in reviews) {
-        if ('value' in reviews[r]['cr']) {
-            cr += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
-                    ' title="' + (reviews[r]['cr'].value > 0 ? '+' : '') + reviews[r]['cr'].value + ' by ' + r + '">' +
-                    '<span class="review_one_val ' + (reviews[r]['cr'].value > 0 ? 'review_good' : 'review_bad') +
-                    '">' + (reviews[r]['cr'].value > 0 ? '+' : '–') + '</span></span>';
-        }
-        if ('value' in reviews[r]['v']) {
-            v += '<span class="review_one"><img class="avatar" src="' + reviews[r].avatar_url + '"' +
-                    ' title="' + (reviews[r]['v'].value > 0 ? '+' : '') + reviews[r]['v'].value + ' by ' + r + '">' +
-                    '<span class="review_one_val ' + (reviews[r]['v'].value > 0 ? 'review_good' : 'review_bad') +
-                    '">' + (reviews[r]['v'].value > 0 ? '+' : '–') + '</span></span>';
-        }
+    var cr_rev = change.get_code_reviews();
+    for (var r in cr_rev) {
+        cr += '<span class="review_one"><img class="avatar" src="' + cr_rev[r].avatar_url + '"' +
+                ' title="' + (cr_rev[r].value > 0 ? '+' : '') + cr_rev[r].value + ' by ' + r + '">' +
+                '<span class="review_one_val ' + (cr_rev[r].value > 0 ? 'review_good' : 'review_bad') +
+                '">' + (cr_rev[r].value > 0 ? '+' : '–') + '</span></span>';
     }
 
+    var v = '<span class="review_sum">' + verified + '</span>';
+    var v_rev = change.get_verified();
+    for (var r in v_rev) {
+        v += '<span class="review_one"><img class="avatar" src="' + v_rev[r].avatar_url + '"' +
+                ' title="' + (v_rev[r].value > 0 ? '+' : '') + v_rev[r].value + ' by ' + r + '">' +
+                '<span class="review_one_val ' + (v_rev[r].value > 0 ? 'review_good' : 'review_bad') +
+                '">' + (v_rev[r].value > 0 ? '+' : '–') + '</span></span>';
+    }
+
+    // Update filtering
     var id = '#CR' + data['_number'] + '>span';
     d3_root.select(id).classed('review', true);
     d3_root.select(id).html(cr);
@@ -309,26 +289,26 @@ function update_entry(data) {
                         // owner can't be required reviewer...
                         if (r == data.owner.name) {
                             // ... but his/her vote is important
-                            if (r in reviews && reviews[r]['cr'].value <= 0)
+                            if (r in cr_rev && cr_rev[r].value <= 0)
                                 reviewers_ok = false;
                             continue;
                         }
 
-                        if (!(r in reviews) || reviews[r]['cr'].value <= 0)
+                        if (!(r in cr_rev) || cr_rev[r].value <= 0)
                             reviewers_ok = false;
                     }
 
                     // check all reviewers scores
-                    for (var r in reviews) {
-                        if ('value' in reviews[r]['cr'] && reviews[r]['cr'].value < 0) {
+                    for (var r in cr_rev) {
+                        if (cr_rev[r].value < 0) {
                             reviewers_ok = false;
                         }
                     }
                 }
 
                 var no_minus_two = true;
-                for (var r in reviews) {
-                    if (reviews[r]['cr'].value == -2) {
+                for (var r in cr_rev) {
+                    if (cr_rev[r].value == -2) {
                         no_minus_two = false;
                         break;
                     }
@@ -338,8 +318,8 @@ function update_entry(data) {
                 if (rule.has_user_plus_two != undefined) {
                     for (var index in rule.has_user_plus_two) {
                         var r = rule.has_user_plus_two[index];
-                        if (r in reviews) {
-                            if (reviews[r]['cr'].value != 2)
+                        if (r in cr_rev) {
+                            if (cr_rev[r].value != 2)
                                 has_user_plus_two = false;
                         } else {
                             has_user_plus_two = false;
