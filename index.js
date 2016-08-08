@@ -5,6 +5,7 @@ var open = require('open');
 var yaml = require('js-yaml');
 var fs = require('fs');
 var Promise = require('promise');
+var Change = require('./lib/change');
 
 
 var win = gui.Window.get();
@@ -145,7 +146,9 @@ function update_changes_table(changes, host, path) {
             continue;
         }
 
-        data.push(changes[index]);
+        var c = new Change(changes[index]);
+        all_changes[c._number] = {'obj': c, 'sts': 'updating'};
+        data.push(c);
     }
 
     columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
@@ -198,7 +201,6 @@ function update_changes_table(changes, host, path) {
             });
 
     for (var index in data) {
-        all_changes[data[index]['_number']] = {'sts': 'updating'};
         gerrit.get_change_details(host, path, data[index]['_number'], update_entry);
     }
 
