@@ -316,7 +316,8 @@ function update_entry(change) {
 
                 // Only add class.
                 // When changes are refreshed (or initialized), all classes are wiped out.
-                if (verified_ok && reviewers_ok && no_minus_two && has_user_plus_two)
+                if (verified_ok && reviewers_ok && no_minus_two && has_user_plus_two
+                    && change.mergeable())
                     d3_root.select('#gid' + change._number)
                         .classed('submit-ready', true);
 
