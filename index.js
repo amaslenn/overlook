@@ -248,25 +248,25 @@ function update_entry(data) {
     }
 
     // Update filtering
-    var id = '#CR' + data['_number'] + '>span';
+    var id = '#CR' + change._number + '>span';
     d3_root.select(id).classed('review', true);
     d3_root.select(id).html(cr);
 
-    id = '#V' + data['_number'] + '>span';
+    id = '#V' + change._number + '>span';
     d3_root.select(id).html(v);
 
-    d3_root.select('#gid' + data['_number'])
+    d3_root.select('#gid' + change._number)
         .classed('reviewed-by-user', reviewed_by_user);
 
-    d3_root.select('#gid' + data['_number'])
-        .classed('user-is-owner', data.owner.name == settings.name);
+    d3_root.select('#gid' + change._number)
+        .classed('user-is-owner', change.owner.name == settings.name);
 
     if (settings.rules != undefined) {
         if (settings.rules.submit_ready != undefined) {
             for (var rule of settings.rules.submit_ready) {
                 // project is mandatory
                 if (rule.project != undefined) {
-                    if (rule.project != data.project)
+                    if (rule.project != change.project)
                         continue;
                 } else {
                     continue;
@@ -283,7 +283,7 @@ function update_entry(data) {
                     // check mandatory reviewers scores
                     for (var r of rule.required_reviewers) {
                         // owner can't be required reviewer...
-                        if (r == data.owner.name) {
+                        if (r == change.owner.name) {
                             // ... but his/her vote is important
                             if (r in cr_rev && cr_rev[r].value <= 0)
                                 reviewers_ok = false;
@@ -325,7 +325,7 @@ function update_entry(data) {
                 // Only add class.
                 // When changes are refreshed (or initialized), all classes are wiped out.
                 if (verified_ok && reviewers_ok && no_minus_two && has_user_plus_two)
-                    d3_root.select('#gid' + data['_number'])
+                    d3_root.select('#gid' + change._number)
                         .classed('submit-ready', true);
 
                 update_filtering();
@@ -333,7 +333,7 @@ function update_entry(data) {
         }
     }
 
-    all_changes[data['_number']]['sts'] = 'updated';
+    all_changes[change._number]['sts'] = 'updated';
     updater_loading_status();
 }
 
