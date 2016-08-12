@@ -201,29 +201,21 @@ function update_changes_table(changes, host, path) {
             });
 
     for (var ch of data) {
-        gerrit.get_change_details(host, path, ch['_number'])
-        .then(function(d) {
-            update_entry(d);
-        })
-        .catch(function(error) {
-            show_error(error);
-        })
+        ch.update_details()
+        .then(function(d){ update_entry(d) })
+        .catch(function(e){ show_error(e) })
     }
 
     update_filtering();
 }
 
-function update_entry(data) {
-    var change = all_changes[data['_number']]['obj'];
-
+function update_entry(change) {
     // get Core-Review/Verified values
-    change.update_code_review(data);
     var reviewed_by_user = change.reviewed_by(settings.name);
     var code_review = change.get_code_review_sum();
     if (code_review > 0)
         code_review = '+' + code_review;
 
-    change.update_verified(data);
     var verified = change.get_verified_sum();
     if (verified > 0)
         verified = '+' + verified;
