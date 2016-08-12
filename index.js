@@ -146,7 +146,7 @@ function update_changes_table(changes, host, path) {
             continue;
         }
 
-        var c = new Change(ch);
+        var c = new Change(host, path, ch);
         all_changes[c._number] = {'obj': c, 'sts': 'updating'};
         data.push(c);
     }
