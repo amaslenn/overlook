@@ -374,11 +374,12 @@ function updater_loading_status() {
         if (all_changes[gid]['sts'] == 'updating')
             in_progress = true;
     }
+    d3_root.select('#btn-refresh').classed('disabled', in_progress);
 
     var showed = d3_root.select('#loader').classed('loader');
-
-    if (in_progress != showed)
+    if (in_progress != showed) {
         d3_root.select('#loader').classed('loader', in_progress);
+    }
 
     update_filtering();
 }
