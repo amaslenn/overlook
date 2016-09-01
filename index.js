@@ -5,6 +5,7 @@ var open = require('open');
 var yaml = require('js-yaml');
 var fs = require('fs');
 var Promise = require('promise');
+var Handlebars = require('handlebars');
 var Change = require('./lib/change');
 
 
@@ -151,54 +152,13 @@ function update_changes_table(changes, host, path) {
         data.push(c);
     }
 
-    columns = ['_number', 'CR', 'V', 'project', 'subject', 'owner'];
+    var source = d3_root.select('#template-row').html();
+    var template = Handlebars.compile(source);
+    var context = {'changes': data};
+
     var table = d3_root.select('#gerrit_changes'),
-        tbody = table.append('tbody');
-
-    // create a row for each object in the data
-    var rows = tbody.selectAll('tr')
-                        .data(data)
-                        .enter()
-                            .append('tr')
-                            .attr('id', function(d) { return 'gid' + d['_number']; })
-                            .classed('gerrit-change', true);
-
-    var i = 0;
-    // create a cell in each row for each column
-    var cells = rows.selectAll('td')
-        .data(function(row) {
-            return columns.map(function(column) {
-                obj = {
-                    column: column,
-                    value: row[column],
-                    gid: row['_number'],
-                    branch: row['branch']
-                };
-                if (column == 'owner') {
-                    var owner = '<img class="avatar" src="' + row.owner.avatars[0].url + '"' +
-                                ' title="' + row.owner.name + '"' +
-                                '>' + row.owner.name;
-                    obj.value = owner;
-                }
-                return obj;
-            });
-        })
-        .enter()
-            .append('td')
-            .attr('id', function(d){ return d.column + d.gid })
-            .append('span')
-            .html(function(d) {
-                if (d.column == 'id') {
-                    return '<span>' + (++i) + '</span>';
-                } else if (d.column == '_number') {
-                    var link = 'https://' + host + (path ? '/' + path + '/' : '/') + '#/c/' + d.value;
-                    return "<a href=javascript:void(0); onclick=\"OpenGerritLink('" + link + "');\"" + "\">"
-                           + d.value + "</a>";
-                } else if (d.column == 'project') {
-                    return d.value + ' (' + d.branch + ')';
-                }
-                return d.value;
-            });
+    tbody = table.append('tbody');
+    tbody.html(template(context));
 
     for (var ch of data) {
         ch.update_details()

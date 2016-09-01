@@ -5,6 +5,18 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.css">
     <script src="index.js" charset="UTF-8"></script>
+    <script id="template-row" type="text/x-handlebars-template">
+        {{#each changes}}
+        <tr id="gid{{_number}}" class="gerrit-change">
+            <td><a href="javascript:void(0);" onclick="OpenGerritLink('{{link}}');"><span>{{_number}}</span></a></td>
+            <td id="CR{{_number}}"><span></span></td>
+            <td id="V{{_number}}"><span></span></td>
+            <td>{{project}} ({{branch}})</td>
+            <td>{{subject}}</td>
+            <td><img class="avatar" src="{{owner_avatar_url}}" title="{{owner.name}}">{{owner.name}}</td>
+        </tr>
+        {{/each}}
+    </script>
   </head>
   <body>
   <div class="container-fluid">
