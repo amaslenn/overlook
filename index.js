@@ -214,76 +214,14 @@ function update_entry(change) {
         .classed('user-is-owner', change.owner.name == settings.name);
 
     if (settings.rules != undefined) {
-        if (settings.rules.submit_ready != undefined) {
-            for (var rule of settings.rules.submit_ready) {
-                // project is mandatory
-                if (rule.project != undefined) {
-                    if (rule.project != change.project)
-                        continue;
-                } else {
-                    continue;
-                }
+        var submit_ready = change.submit_ready(settings.rules.submit_ready);
 
-                var verified_ok = true;
-                if (rule.verified != undefined) {
-                    if (rule.verified && !verified)
-                        verified_ok = false;
-                }
+        // Only add class.
+        // When changes are refreshed (or initialized), all classes are wiped out.
+        if (submit_ready && change.mergeable())
+            d3_root.select('#gid' + change._number).classed('submit-ready', true);
 
-                var reviewers_ok = true;
-                if (rule.required_reviewers != undefined) {
-                    // check mandatory reviewers scores
-                    for (var r of rule.required_reviewers) {
-                        // owner can't be required reviewer...
-                        if (r == change.owner.name) {
-                            // ... but his/her vote is important
-                            if (r in cr_rev && cr_rev[r].value <= 0)
-                                reviewers_ok = false;
-                            continue;
-                        }
-
-                        if (!(r in cr_rev) || cr_rev[r].value <= 0)
-                            reviewers_ok = false;
-                    }
-
-                    // check all reviewers scores
-                    for (var r in cr_rev) {
-                        if (cr_rev[r].value < 0) {
-                            reviewers_ok = false;
-                        }
-                    }
-                }
-
-                var no_minus_two = true;
-                for (var r in cr_rev) {
-                    if (cr_rev[r].value == -2) {
-                        no_minus_two = false;
-                        break;
-                    }
-                }
-
-                var has_user_plus_two = true;
-                if (rule.has_user_plus_two != undefined) {
-                    for (var r of rule.has_user_plus_two) {
-                        if (r in cr_rev) {
-                            if (cr_rev[r].value != 2)
-                                has_user_plus_two = false;
-                        } else {
-                            has_user_plus_two = false;
-                        }
-                    }
-                }
-
-                // Only add class.
-                // When changes are refreshed (or initialized), all classes are wiped out.
-                if (verified_ok && reviewers_ok && no_minus_two && has_user_plus_two
-                    && change.mergeable())
-                    d3_root.select('#gid' + change._number)
-                        .classed('submit-ready', true);
-
-                update_filtering();
-            }
-        }
+        update_filtering();
     }
 
     all_changes[change._number]['sts'] = 'updated';
