@@ -58,12 +58,8 @@ function refresh() {
 function check_login() {
     var usr = d3_root.select('#user').property('value');
     var pwd = d3_root.select('#password').property('value');
-    var no_pwd = d3_root.select('#no_password').property('checked');
 
     if (usr == undefined || usr.length == 0)
-        return;
-
-    if ((pwd == undefined || pwd.length == 0) && !no_pwd)
         return;
 
     if (!load_user_settings(usr))
