@@ -9,6 +9,10 @@ var Handlebars = require('handlebars');
 var Change = require('./lib/change');
 
 
+var CONFIG_DIR = (process.env.HOME || process.env.USERPROFILE) + '/.overlook';
+var SETTINGS_FILE = CONFIG_DIR + '/settings.yml';
+
+
 var win = gui.Window.get();
 var tray;
 var settings = {};
@@ -31,13 +35,12 @@ win.on('minimize', function() {
 });
 
 win.on('loaded', function() {
-    var cfg_dir = (process.env.HOME || process.env.USERPROFILE) + '/.overlook';
-    if (!fs.existsSync(cfg_dir)) {
-        fs.mkdirSync(cfg_dir)
+    if (!fs.existsSync(CONFIG_DIR)) {
+        fs.mkdirSync(CONFIG_DIR)
     } else {
-        var settings_file = cfg_dir + '/settings.yml';
-        if (fs.existsSync(settings_file)) {
-            settings = yaml.load(fs.readFileSync(settings_file));
+        if (fs.existsSync(SETTINGS_FILE)) {
+            settings = yaml.load(fs.readFileSync(SETTINGS_FILE));
+        }
         }
     }
 
