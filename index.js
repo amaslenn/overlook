@@ -12,6 +12,8 @@ var Change = require('./lib/change');
 var win = gui.Window.get();
 var tray;
 var settings = {};
+var user_config = {};
+var session = {};
 var d3_root;
 var all_changes = {};
 
@@ -29,9 +31,18 @@ win.on('minimize', function() {
 });
 
 win.on('loaded', function() {
+    var cfg_dir = (process.env.HOME || process.env.USERPROFILE) + '/.overlook';
+    if (!fs.existsSync(cfg_dir)) {
+        fs.mkdirSync(cfg_dir)
+    } else {
+        var settings_file = cfg_dir + '/settings.yml';
+        if (fs.existsSync(settings_file)) {
+            settings = yaml.load(fs.readFileSync(settings_file));
+        }
+    }
+
     win.show();
     d3_root = d3.select(document);
-
 });
 
 function load_data() {
@@ -62,11 +73,11 @@ function check_login() {
     if (usr == undefined || usr.length == 0)
         return;
 
-    if (!load_user_settings(usr))
+    if (!load_user_config(usr))
         return;
 
     // TODO: check all available projects
-    gerrit.login(settings.projects[0].host, settings.projects[0].path, usr, pwd)
+    gerrit.login(user_config.projects[0].host, user_config.projects[0].path, usr, pwd)
     .then(initialize)
     .catch(function(e) {
         show_error(e);
@@ -80,11 +91,11 @@ function get_all_changes() {
     start_loading();
     d3_root.select('#gerrit_changes').classed('hide', false);
 
-    for (var i = settings.projects.length - 1; i >= 0; i--) {
-        host = settings.projects[i].host;
-        path = settings.projects[i].path;
-        for (var j = settings.projects[i].queries.length - 1; j >= 0; j--) {
-            query = settings.projects[i].queries[j];
+    for (var i = user_config.projects.length - 1; i >= 0; i--) {
+        host = user_config.projects[i].host;
+        path = user_config.projects[i].path;
+        for (var j = user_config.projects[i].queries.length - 1; j >= 0; j--) {
+            query = user_config.projects[i].queries[j];
             gerrit.query_changes(host, path, query)
             .then(function(res) {
                 update_changes_table(res.json, res.host, res.path);
@@ -99,29 +110,15 @@ function get_all_changes() {
     }
 }
 
-function load_user_settings(user) {
-    settings = {};
+function load_user_config(user) {
+    user_config = {};
 
-    cfg_dir = (process.env.HOME || process.env.USERPROFILE) + '/.overlook';
-    if (!fs.existsSync(cfg_dir)) {
-        fs.mkdirSync(cfg_dir)
-    } else {
-        settings_file = cfg_dir + '/settings.yml';
-        if (fs.existsSync(settings_file)) {
-            settings = yaml.load(fs.readFileSync(settings_file));
-        } else {
-            obj = {};
-            obj[user] = {'projects': []};
-            fs.writeFileSync(settings_file, yaml.dump(obj));
-        }
-    }
-
-    if (!settings[user] || settings[user].projects == undefined ||
+    if (!(user in settings) || settings[user].projects == undefined ||
         !settings[user].projects.length) {
         show_error('No projects for ' + user);
         return false;
     }
-    settings = settings[user];
+    user_config = settings[user];
 
     return true;
 }
@@ -167,7 +164,7 @@ function update_changes_table(changes, host, path) {
 
 function update_entry(change) {
     // get Core-Review/Verified values
-    var reviewed_by_user = change.reviewed_by(settings.name);
+    var reviewed_by_user = change.reviewed_by(user_config.name);
     var code_review = change.get_code_review_sum();
     if (code_review > 0)
         code_review = '+' + code_review;
@@ -207,11 +204,11 @@ function update_entry(change) {
         .classed('reviewed-by-user', reviewed_by_user);
 
     d3_root.select('#gid' + change._number)
-        .classed('user-is-owner', change.owner.name == settings.name);
+        .classed('user-is-owner', change.owner.name == user_config.name);
 
-    if (settings.rules != undefined) {
-        if (settings.rules.submit_ready != undefined) {
-            for (var rule of settings.rules.submit_ready) {
+    if (user_config.rules != undefined) {
+        if (user_config.rules.submit_ready != undefined) {
+            for (var rule of user_config.rules.submit_ready) {
                 // project is mandatory
                 if (rule.project != undefined) {
                     if (rule.project != change.project)
