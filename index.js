@@ -11,6 +11,7 @@ var Change = require('./lib/change');
 
 var CONFIG_DIR = (process.env.HOME || process.env.USERPROFILE) + '/.overlook';
 var SETTINGS_FILE = CONFIG_DIR + '/settings.yml';
+var SESSION_FILE = CONFIG_DIR + '/session';
 
 
 var win = gui.Window.get();
@@ -41,11 +42,18 @@ win.on('loaded', function() {
         if (fs.existsSync(SETTINGS_FILE)) {
             settings = yaml.load(fs.readFileSync(SETTINGS_FILE));
         }
+
+        if (fs.existsSync(SESSION_FILE)) {
+            session = yaml.load(fs.readFileSync(SESSION_FILE));
         }
     }
 
     win.show();
     d3_root = d3.select(document);
+
+    if (session.last_user != undefined) {
+        d3_root.select('#user').attr("value", session.last_user);
+    }
 });
 
 function load_data() {
@@ -86,6 +94,9 @@ function check_login() {
         show_error(e);
         return;
     });
+
+    session.last_user = usr;
+    fs.writeFileSync(SESSION_FILE, yaml.dump(session));
 
     return;
 }
