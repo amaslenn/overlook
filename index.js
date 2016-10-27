@@ -52,11 +52,22 @@ win.on('loaded', function() {
     d3_root = d3.select(document);
 
     if (session.last_user != undefined) {
-        d3_root.select('#user').attr("value", session.last_user);
+        d3_root.select('#user').attr('value', session.last_user);
+        if (settings[session.last_user].password != undefined) {
+            d3_root.select('#password').attr('value', settings[session.last_user].password);
+            d3_root.select('#save_password').property('checked', true);
+            d3_root.select('#login_btn').node().focus();
+        } else {
+            d3_root.select('#password').node().focus();
+        }
     }
 });
 
 function load_data() {
+    if (check_login() != true) {
+        show_error('Cannot login');
+        return;
+    }
     d3_root.select('#login').classed('hide', true);
     d3_root.select('#menu').classed('hide', false);
     start_loading();
@@ -82,23 +93,29 @@ function check_login() {
     var pwd = d3_root.select('#password').property('value');
 
     if (usr == undefined || usr.length == 0)
-        return;
+        return false;
 
     if (!load_user_config(usr))
-        return;
+        return false;
 
     // TODO: check all available projects
     gerrit.login(user_config.projects[0].host, user_config.projects[0].path, usr, pwd)
     .then(initialize)
     .catch(function(e) {
         show_error(e);
-        return;
+        return false;
     });
 
     session.last_user = usr;
     fs.writeFileSync(SESSION_FILE, yaml.dump(session));
 
-    return;
+    var save_password = d3_root.select('#save_password').property('checked');
+    if (save_password) {
+        settings[usr].password = pwd;
+        fs.writeFileSync(SETTINGS_FILE, yaml.dump(settings));
+    }
+
+    return true;
 }
 
 function get_all_changes() {

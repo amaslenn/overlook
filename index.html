@@ -24,9 +24,14 @@
             <form class="form-signin" novalidate>
                 <h2>Log in</h2>
                 <label for="user" class="sr-only">User</label>
-                <input onchange="check_login()" type="text" id="user" class="form-control" placeholder="Gerrit user" required autofocus>
+                <input type="text" id="user" class="form-control" placeholder="Gerrit user" required autofocus>
                 <label for="password" class="sr-only">Password</label>
-                <input onchange="check_login()" type="password" id="password" class="form-control" placeholder="Password" required>
+                <input type="password" id="password" class="form-control" placeholder="Password" required>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="save_password"> Save password
+                    </label>
+                </div>
                 <button onclick="load_data()" id="login_btn" class="btn btn-primary btn-block" type="button">Log in</button>
             </form>
         </div>
