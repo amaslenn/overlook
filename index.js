@@ -57,16 +57,43 @@ win.on('loaded', function() {
     d3_root.select('#nav_review').on('click', filter_reviewed);
     d3_root.select('#nav_submit').on('click', filter_submit_ready);
 
+    // restore user login/password from the last session
     if (session.last_user != undefined) {
-        d3_root.select('#user').attr('value', session.last_user);
+        d3_root.select('#user').property('value', session.last_user);
         if (settings[session.last_user].password != undefined) {
-            d3_root.select('#password').attr('value', settings[session.last_user].password);
+            d3_root.select('#password').property('value', settings[session.last_user].password);
+            if (settings[session.last_user].password == '') {
+                d3_root.select('#password').property('placeholder', 'Empty password is used');
+            }
             d3_root.select('#save_password').property('checked', true);
             d3_root.select('#login_btn').node().focus();
         } else {
             d3_root.select('#password').node().focus();
         }
     }
+
+    // dynamically check if entered user name already present in settings and autofill
+    // all found information
+    d3_root.select('#user').on('input', function() {
+        var probably_user = d3_root.select('#user').property('value');
+        var found = false;
+        if (probably_user in settings) {
+            if (settings[session.last_user].password != undefined) {
+                d3_root.select('#password').property('value', settings[session.last_user].password);
+                if (settings[session.last_user].password == '') {
+                    d3_root.select('#password').property('placeholder', 'Empty password is used');
+                }
+                d3_root.select('#save_password').property('checked', true);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            d3_root.select('#password').property('value', '');
+            d3_root.select('#password').property('placeholder', 'Password');
+            d3_root.select('#save_password').property('checked', false);
+        }
+    });
 });
 
 function load_data() {
