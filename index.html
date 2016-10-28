@@ -32,25 +32,25 @@
                         <input type="checkbox" id="save_password"> Save password
                     </label>
                 </div>
-                <button onclick="load_data()" id="login_btn" class="btn btn-primary btn-block" type="button">Log in</button>
+                <button id="login_btn" class="btn btn-primary btn-block" type="button">Log in</button>
             </form>
         </div>
         <div id="menu" class="row hide">
             <div class="col-xs-11">
                 <ul class="nav nav-tabs">
-                    <li onclick="filter_all()" id="nav_all" role="presentation" class="active">
+                    <li id="nav_all" role="presentation" class="active">
                         <a>All <span id="all_num" class="badge"></span></a>
                     </li>
-                    <li onclick="filter_reviewed()" id="nav_review" role="presentation">
+                    <li id="nav_review" role="presentation">
                         <a>Need review <span id="review_num" class="badge"></span></a>
                     </li>
-                    <li onclick="filter_submit_ready()" id="nav_submit" role="presentation">
+                    <li id="nav_submit" role="presentation">
                         <a>Ready for submit <span id="submit_num" class="badge"></span></a>
                     </li>
                 </ul>
             </div>
             <div class="col-xs-1">
-                <button onclick="refresh()" id="btn-refresh" type="button" class="btn btn-default refresh">
+                <button id="btn-refresh" type="button" class="btn btn-default refresh">
                     <span class="glyphicon glyphicon-refresh" id="loader" aria-hidden="true"></span>
                 </button>
             </div>

@@ -51,6 +51,12 @@ win.on('loaded', function() {
     win.show();
     d3_root = d3.select(document);
 
+    d3_root.select('#login_btn').on('click', load_data);
+    d3_root.select('#btn-refresh').on('click', refresh);
+    d3_root.select('#nav_all').on('click', filter_all);
+    d3_root.select('#nav_review').on('click', filter_reviewed);
+    d3_root.select('#nav_submit').on('click', filter_submit_ready);
+
     if (session.last_user != undefined) {
         d3_root.select('#user').attr('value', session.last_user);
         if (settings[session.last_user].password != undefined) {
