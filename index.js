@@ -230,7 +230,20 @@ function update_entry(change) {
 
 function filter_all() {
     reset_filters();
+
     d3_root.select('#nav_all').classed('active', true);
+    d3_root.select('#nav_mine').classed('active', false);
+    d3_root.select('#nav_review').classed('active', false);
+    d3_root.select('#nav_submit').classed('active', false);
+
+    update_filtering();
+}
+
+function filter_mine() {
+    reset_filters();
+
+    d3_root.select('#nav_all').classed('active', false);
+    d3_root.select('#nav_mine').classed('active', true);
     d3_root.select('#nav_review').classed('active', false);
     d3_root.select('#nav_submit').classed('active', false);
 
@@ -242,6 +255,7 @@ function filter_reviewed() {
     reset_filters();
 
     d3_root.select('#nav_all').classed('active', false);
+    d3_root.select('#nav_mine').classed('active', false);
     d3_root.select('#nav_review').classed('active', true);
     d3_root.select('#nav_submit').classed('active', false);
 
@@ -252,6 +266,7 @@ function filter_submit_ready() {
     reset_filters();
 
     d3_root.select('#nav_all').classed('active', false);
+    d3_root.select('#nav_mine').classed('active', false);
     d3_root.select('#nav_review').classed('active', false);
     d3_root.select('#nav_submit').classed('active', true);
 
@@ -286,22 +301,28 @@ function updater_loading_status() {
 function update_filtering() {
     // getting currently selected tab
     var is_all_active = d3_root.select('#nav_all').classed('active');
+    var is_mine_active = d3_root.select('#nav_mine').classed('active');
     var is_review_active = d3_root.select('#nav_review').classed('active');
     var is_submit_active = d3_root.select('#nav_submit').classed('active');
 
     // defining number of changes per filter
     var num_all = Object.keys(all_changes).length;
+    var num_mine = d3_root.selectAll('.user-is-owner').size();
     var num_review = num_all - d3_root.selectAll('.reviewed-by-user, .user-is-owner').size();
     var num_submit = d3_root.selectAll('.submit-ready').size();
 
     // updating badges
     d3_root.select('#all_num').text(num_all);
+    d3_root.select('#mine_num').text(num_mine);
     d3_root.select('#review_num').text(num_review);
     d3_root.select('#submit_num').text(num_submit);
 
     // hide some changes
     if (is_all_active) {
         d3_root.selectAll('.gerrit-change').classed('hide', false);
+    } else if (is_mine_active) {
+        d3_root.selectAll('.gerrit-change').classed('hide', true);
+        d3_root.selectAll('.user-is-owner').classed('hide', false);
     } else if (is_review_active) {
         d3_root.selectAll('.gerrit-change').classed('hide', false);
         d3_root.selectAll('.reviewed-by-user').classed('hide', true);
