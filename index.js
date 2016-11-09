@@ -78,9 +78,9 @@ win.on('loaded', function() {
         var probably_user = d3_root.select('#user').property('value');
         var found = false;
         if (probably_user in settings) {
-            if (settings[session.last_user].password != undefined) {
-                d3_root.select('#password').property('value', settings[session.last_user].password);
-                if (settings[session.last_user].password == '') {
+            if (settings[probably_user].password != undefined) {
+                d3_root.select('#password').property('value', settings[probably_user].password);
+                if (settings[probably_user].password == '') {
                     d3_root.select('#password').property('placeholder', 'Empty password is used');
                 }
                 d3_root.select('#save_password').property('checked', true);
