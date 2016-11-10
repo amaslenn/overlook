@@ -9,9 +9,16 @@ var Handlebars = require('handlebars');
 var Change = require('./lib/change');
 
 
+var CONFIG_DIR = (process.env.HOME || process.env.USERPROFILE) + '/.overlook';
+var SETTINGS_FILE = CONFIG_DIR + '/settings.yml';
+var SESSION_FILE = CONFIG_DIR + '/session';
+
+
 var win = gui.Window.get();
 var tray;
 var settings = {};
+var user_config = {};
+var session = {};
 var d3_root;
 var all_changes = {};
 
@@ -29,12 +36,71 @@ win.on('minimize', function() {
 });
 
 win.on('loaded', function() {
+    if (!fs.existsSync(CONFIG_DIR)) {
+        fs.mkdirSync(CONFIG_DIR)
+    } else {
+        if (fs.existsSync(SETTINGS_FILE)) {
+            settings = yaml.load(fs.readFileSync(SETTINGS_FILE));
+        }
+
+        if (fs.existsSync(SESSION_FILE)) {
+            session = yaml.load(fs.readFileSync(SESSION_FILE));
+        }
+    }
+
     win.show();
     d3_root = d3.select(document);
 
+    d3_root.select('#login_btn').on('click', load_data);
+    d3_root.select('#btn-refresh').on('click', refresh);
+    d3_root.select('#nav_all').on('click', filter_all);
+    d3_root.select('#nav_review').on('click', filter_reviewed);
+    d3_root.select('#nav_submit').on('click', filter_submit_ready);
+
+    // restore user login/password from the last session
+    if (session.last_user != undefined) {
+        d3_root.select('#user').property('value', session.last_user);
+        if (settings[session.last_user].password != undefined) {
+            d3_root.select('#password').property('value', settings[session.last_user].password);
+            if (settings[session.last_user].password == '') {
+                d3_root.select('#password').property('placeholder', 'Empty password is used');
+            }
+            d3_root.select('#save_password').property('checked', true);
+            d3_root.select('#login_btn').node().focus();
+        } else {
+            d3_root.select('#password').node().focus();
+        }
+    }
+
+    // dynamically check if entered user name already present in settings and autofill
+    // all found information
+    d3_root.select('#user').on('input', function() {
+        var probably_user = d3_root.select('#user').property('value');
+        var found = false;
+        if (probably_user in settings) {
+            if (settings[probably_user].password != undefined) {
+                d3_root.select('#password').property('value', settings[probably_user].password);
+                if (settings[probably_user].password == '') {
+                    d3_root.select('#password').property('placeholder', 'Empty password is used');
+                }
+                d3_root.select('#save_password').property('checked', true);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            d3_root.select('#password').property('value', '');
+            d3_root.select('#password').property('placeholder', 'Password');
+            d3_root.select('#save_password').property('checked', false);
+        }
+    });
 });
 
 function load_data() {
+    if (check_login() != true) {
+        show_error('Cannot login');
+        return;
+    }
     d3_root.select('#login').classed('hide', true);
     d3_root.select('#menu').classed('hide', false);
     start_loading();
@@ -58,37 +124,42 @@ function refresh() {
 function check_login() {
     var usr = d3_root.select('#user').property('value');
     var pwd = d3_root.select('#password').property('value');
-    var no_pwd = d3_root.select('#no_password').property('checked');
 
     if (usr == undefined || usr.length == 0)
-        return;
+        return false;
 
-    if ((pwd == undefined || pwd.length == 0) && !no_pwd)
-        return;
-
-    if (!load_user_settings(usr))
-        return;
+    if (!load_user_config(usr))
+        return false;
 
     // TODO: check all available projects
-    gerrit.login(settings.projects[0].host, settings.projects[0].path, usr, pwd)
+    gerrit.login(user_config.projects[0].host, user_config.projects[0].path, usr, pwd)
     .then(initialize)
     .catch(function(e) {
         show_error(e);
-        return;
+        return false;
     });
 
-    return;
+    session.last_user = usr;
+    fs.writeFileSync(SESSION_FILE, yaml.dump(session));
+
+    var save_password = d3_root.select('#save_password').property('checked');
+    if (save_password) {
+        settings[usr].password = pwd;
+        fs.writeFileSync(SETTINGS_FILE, yaml.dump(settings));
+    }
+
+    return true;
 }
 
 function get_all_changes() {
     start_loading();
     d3_root.select('#gerrit_changes').classed('hide', false);
 
-    for (var i = settings.projects.length - 1; i >= 0; i--) {
-        host = settings.projects[i].host;
-        path = settings.projects[i].path;
-        for (var j = settings.projects[i].queries.length - 1; j >= 0; j--) {
-            query = settings.projects[i].queries[j];
+    for (var i = user_config.projects.length - 1; i >= 0; i--) {
+        host = user_config.projects[i].host;
+        path = user_config.projects[i].path;
+        for (var j = user_config.projects[i].queries.length - 1; j >= 0; j--) {
+            query = user_config.projects[i].queries[j];
             gerrit.query_changes(host, path, query)
             .then(function(res) {
                 update_changes_table(res.json, res.host, res.path);
@@ -103,29 +174,15 @@ function get_all_changes() {
     }
 }
 
-function load_user_settings(user) {
-    settings = {};
+function load_user_config(user) {
+    user_config = {};
 
-    cfg_dir = (process.env.HOME || process.env.USERPROFILE) + '/.overlook';
-    if (!fs.existsSync(cfg_dir)) {
-        fs.mkdirSync(cfg_dir)
-    } else {
-        settings_file = cfg_dir + '/settings.yml';
-        if (fs.existsSync(settings_file)) {
-            settings = yaml.load(fs.readFileSync(settings_file));
-        } else {
-            obj = {};
-            obj[user] = {'projects': []};
-            fs.writeFileSync(settings_file, yaml.dump(obj));
-        }
-    }
-
-    if (!settings[user] || settings[user].projects == undefined ||
+    if (!(user in settings) || settings[user].projects == undefined ||
         !settings[user].projects.length) {
         show_error('No projects for ' + user);
         return false;
     }
-    settings = settings[user];
+    user_config = settings[user];
 
     return true;
 }
@@ -171,7 +228,7 @@ function update_changes_table(changes, host, path) {
 
 function update_entry(change) {
     // get Core-Review/Verified values
-    var reviewed_by_user = change.reviewed_by(settings.name);
+    var reviewed_by_user = change.reviewed_by(user_config.name);
     var code_review = change.get_code_review_sum();
     if (code_review > 0)
         code_review = '+' + code_review;
@@ -211,10 +268,10 @@ function update_entry(change) {
         .classed('reviewed-by-user', reviewed_by_user);
 
     d3_root.select('#gid' + change._number)
-        .classed('user-is-owner', change.owner.name == settings.name);
+        .classed('user-is-owner', change.owner.name == user_config.name);
 
-    if (settings.rules != undefined) {
-        var submit_ready = change.submit_ready(settings.rules.submit_ready);
+    if (user_config.rules != undefined) {
+        var submit_ready = change.submit_ready(user_config.rules.submit_ready);
 
         // Only add class.
         // When changes are refreshed (or initialized), all classes are wiped out.
