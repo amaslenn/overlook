@@ -1,12 +1,12 @@
 var gui = require('nw.gui');
-var gerrit = require('./lib/gerrit');
+var gerrit = require('../lib/gerrit');
 var d3 = require('d3');
 var open = require('open');
 var yaml = require('js-yaml');
 var fs = require('fs');
 var Promise = require('promise');
 var Handlebars = require('handlebars');
-var Change = require('./lib/change');
+var Change = require('../lib/change');
 
 
 var CONFIG_DIR = (process.env.HOME || process.env.USERPROFILE) + '/.overlook';
