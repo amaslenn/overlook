@@ -16,7 +16,8 @@
   },
   "scripts": {
     "dev": "nw src/",
-    "build": "nwbuild --platforms win64 --flavor normal --buildDir dist/ src/"
+    "build": "nwbuild --platforms win64 --flavor normal --buildDir dist/ src/",
+    "build-osx": "nwbuild --platforms osx64 --flavor normal --buildDir dist/ src/"
   },
   "devDependencies": {
     "nw": "^0.19.0",
