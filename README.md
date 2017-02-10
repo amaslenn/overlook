@@ -15,7 +15,20 @@ amaslenn:
       verified: True    // is Verified required
 ```
 
-## How to build
-`$> cd overlook`  
-`$> npm i -g nw-builder`  
-`$> nwbuild -p win64 -v 0.12.3 .`  
+## Run dev version
+```sh
+# prepare dev env
+$ export NWJS_BUILD_TYPE=sdk
+$ npm install
+# run
+$ npm run dev
+```
+
+## Build and package
+```sh
+$ npm run build
+# or build just specific platform
+$ npm run build-win
+$ npm run build-lin
+$ npm run build-osx
+```

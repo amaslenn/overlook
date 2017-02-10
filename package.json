@@ -4,15 +4,15 @@
   "description": "Pull changes from several Gerrit servers into one screen",
   "license": "MIT",
   "author": {
-      "name": "Andrey Maslennikov",
-      "url": "https://github.com/amaslenn"
+    "name": "Andrey Maslennikov",
+    "url": "https://github.com/amaslenn"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/amaslenn/overlook.git"
   },
   "bugs": {
-      "url": "https://github.com/amaslenn/overlook/issues"
+    "url": "https://github.com/amaslenn/overlook/issues"
   },
   "scripts": {
     "dev": "nw src/",
@@ -22,7 +22,7 @@
     "build-osx": "nwbuild --platforms osx64 --flavor normal --buildDir dist/ src/"
   },
   "devDependencies": {
-    "nw": "^0.19.0",
-    "nw-builder":"^3.1.2"
+    "nw": "^0.20.1",
+    "nw-builder": "^3.1.2"
   }
 }
