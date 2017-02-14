@@ -165,8 +165,10 @@ function get_all_changes() {
         }
     }
 
+    console.log("Waiting for all queries to respond...");
     Promise.all(requests)
     .then(values => {
+        console.log(" done");
         for (var res of values) {
             for (var ch of res.json) {
                 if (ch['_number'] in all_changes) {
@@ -179,7 +181,8 @@ function get_all_changes() {
         }
         update_changes_table();
     })
-    .catch(function() {
+    .catch(error => {
+        console.log(" done with error:", error);
         d3_root.select('#gerrit_changes').classed('hide', true);
         all_changes = {};
         updater_loading_status();
@@ -225,13 +228,37 @@ function update_changes_table() {
     var tbody = table.append('tbody');
     tbody.html(template(context));
 
-    for (var ch of data) {
-        ch.update_details()
-        .then(function(d){ update_entry(d) })
-        .catch(function(e){ show_error(e) })
+    var chunk_size = 10;
+    var chunks = [];
+    var temp = [];
+    for (var i = 0; i < data.length; i++) {
+        if (i && (i % chunk_size == 0)) {
+            chunks.push(temp);
+            temp = [];
+        }
+        temp.push(data[i]);
     }
+    chunks.push(temp);
 
-    update_filtering();
+    var timeout = 600 * chunk_size;     // N ms per chunk
+    for (var i in chunks) {
+        (function(ind) {
+            var chunk = chunks[ind];
+            setTimeout(function() {
+                var reqs = [];
+                for (var ch of chunk) {
+                    reqs.push(ch.update_details())
+                }
+                Promise.all(reqs)
+                .then(values => {
+                    for (var d of values) {
+                        update_entry(d);
+                    }
+                })
+                .catch(error => { show_error(error) })
+            }, timeout * ind);
+        })(i);
+    }
 }
 
 function update_entry(change) {
