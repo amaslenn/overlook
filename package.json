@@ -1,6 +1,6 @@
 {
   "name": "overlook",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Pull changes from several Gerrit servers into one screen",
   "license": "MIT",
   "author": {
