@@ -156,13 +156,21 @@ function get_all_changes() {
     d3_root.select('#gerrit_changes').classed('hide', false);
 
     for (var i = user_config.projects.length - 1; i >= 0; i--) {
-        host = user_config.projects[i].host;
-        path = user_config.projects[i].path;
+        var host = user_config.projects[i].host;
+        var path = user_config.projects[i].path;
         for (var j = user_config.projects[i].queries.length - 1; j >= 0; j--) {
             query = user_config.projects[i].queries[j];
             gerrit.query_changes(host, path, query)
             .then(function(res) {
-                update_changes_table(res.json, res.host, res.path);
+                for (var ch of res.json) {
+                    if (ch['_number'] in all_changes) {
+                        continue;
+                    }
+
+                    var c = new Change(res.host, res.path, ch);
+                    all_changes[c._number] = {'obj': c, 'sts': 'updating'};
+                }
+                update_changes_table();
             })
             .catch(function(e) {
                 d3_root.select('#gerrit_changes').classed('hide', true);
@@ -197,24 +205,19 @@ function OpenGerritLink(link) {
     return 0;
 }
 
-function update_changes_table(changes, host, path) {
+function update_changes_table() {
     var data = [];
-    for (var ch of changes) {
-        if (ch['_number'] in all_changes) {
-            continue;
-        }
-
-        var c = new Change(host, path, ch);
-        all_changes[c._number] = {'obj': c, 'sts': 'updating'};
-        data.push(c);
+    for (var chid in all_changes) {
+        data.push(all_changes[chid].obj);
     }
 
     var source = d3_root.select('#template-row').html();
     var template = Handlebars.compile(source);
     var context = {'changes': data};
 
-    var table = d3_root.select('#gerrit_changes'),
-    tbody = table.append('tbody');
+    var table = d3_root.select('#gerrit_changes');
+    table.selectAll('tbody').remove();
+    var tbody = table.append('tbody');
     tbody.html(template(context));
 
     for (var ch of data) {
