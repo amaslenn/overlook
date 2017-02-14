@@ -1,0 +1,40 @@
+{
+  "name": "overlook",
+  "version": "0.8.0",
+  "description": "Pull changes from several Gerrit servers into one screen",
+  "main": "views/index.html",
+  "window": {
+    "show": true,
+    "toolbar": false,
+    "icon": "assets/shield-warning.png",
+    "position": "center",
+    "width": 1100,
+    "height": 650
+  },
+  "maintainers": [
+      {
+        "name": "Andrey Maslennikov",
+        "url": "https://github.com/amaslenn"
+      }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amaslenn/overlook.git",
+    "path": "src/"
+  },
+  "bugs": {
+      "url": "https://github.com/amaslenn/overlook/issues"
+  },
+  "license": {
+      "type": "MIT",
+      "url": "https://github.com/amaslenn/overlook/blob/master/LICENSE"
+  },
+  "dependencies": {
+    "bootstrap": "^3.3.6",
+    "d3": "^3.5.16",
+    "handlebars": "^4.0.5",
+    "js-yaml": "^3.5.3",
+    "open": "0.0.5",
+    "promise": "^7.1.1"
+  }
+}
