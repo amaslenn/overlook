@@ -17,8 +17,13 @@ amaslenn:
 
 ## Run dev version
 ```sh
+$ cd src
+$ npm install
+$ cd ..
 # prepare dev env
-$ export NWJS_BUILD_TYPE=sdk
+$ export NWJS_BUILD_TYPE=sdk    # use `set` instead of `export` on Windows
+# if you use proxy, set `https_proxy` to '', otherwise post install script may not work:
+# GitHub issue: https://github.com/nwjs/npm-installer/issues/29#issuecomment-279671289
 $ npm install
 # run
 $ npm run dev
