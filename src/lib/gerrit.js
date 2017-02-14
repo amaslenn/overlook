@@ -91,7 +91,7 @@ get_change_details: function(host, path, id) {
     var https = require('https');
 
     var options = prepare_options(host, path, '');
-    options.path += '/' + id + '/detail?o=CURRENT_REVISION';
+    options.path += id + '/detail?o=CURRENT_REVISION';
 
     return new Promise(function(resolve, reject) {
         var changes = [];

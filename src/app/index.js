@@ -155,23 +155,36 @@ function get_all_changes() {
     start_loading();
     d3_root.select('#gerrit_changes').classed('hide', false);
 
+    var requests = [];
     for (var i = user_config.projects.length - 1; i >= 0; i--) {
-        host = user_config.projects[i].host;
-        path = user_config.projects[i].path;
+        var host = user_config.projects[i].host;
+        var path = user_config.projects[i].path;
         for (var j = user_config.projects[i].queries.length - 1; j >= 0; j--) {
             query = user_config.projects[i].queries[j];
-            gerrit.query_changes(host, path, query)
-            .then(function(res) {
-                update_changes_table(res.json, res.host, res.path);
-            })
-            .catch(function(e) {
-                d3_root.select('#gerrit_changes').classed('hide', true);
-                all_changes = {};
-                updater_loading_status();
-                show_error(error);
-            });
+            requests.push(gerrit.query_changes(host, path, query))
         }
     }
+
+    Promise.all(requests)
+    .then(values => {
+        for (var res of values) {
+            for (var ch of res.json) {
+                if (ch['_number'] in all_changes) {
+                    continue;
+                }
+
+                var c = new Change(res.host, res.path, ch);
+                all_changes[c._number] = {'obj': c, 'sts': 'updating'};
+            }
+        }
+        update_changes_table();
+    })
+    .catch(error => {
+        d3_root.select('#gerrit_changes').classed('hide', true);
+        all_changes = {};
+        updater_loading_status();
+        show_error(error);
+    });
 }
 
 function load_user_config(user) {
@@ -197,33 +210,52 @@ function OpenGerritLink(link) {
     return 0;
 }
 
-function update_changes_table(changes, host, path) {
+function update_changes_table() {
     var data = [];
-    for (var ch of changes) {
-        if (ch['_number'] in all_changes) {
-            continue;
-        }
-
-        var c = new Change(host, path, ch);
-        all_changes[c._number] = {'obj': c, 'sts': 'updating'};
-        data.push(c);
+    for (var chid in all_changes) {
+        data.push(all_changes[chid].obj);
     }
 
     var source = d3_root.select('#template-row').html();
     var template = Handlebars.compile(source);
     var context = {'changes': data};
 
-    var table = d3_root.select('#gerrit_changes'),
-    tbody = table.append('tbody');
+    var table = d3_root.select('#gerrit_changes');
+    table.selectAll('tbody').remove();
+    var tbody = table.append('tbody');
     tbody.html(template(context));
 
-    for (var ch of data) {
-        ch.update_details()
-        .then(function(d){ update_entry(d) })
-        .catch(function(e){ show_error(e) })
+    var chunk_size = 10;
+    var chunks = [];
+    var temp = [];
+    for (var i = 0; i < data.length; i++) {
+        if (i && (i % chunk_size == 0)) {
+            chunks.push(temp);
+            temp = [];
+        }
+        temp.push(data[i]);
     }
+    chunks.push(temp);
 
-    update_filtering();
+    var timeout = 600 * chunk_size;     // N ms per chunk
+    for (var i in chunks) {
+        (function(ind) {
+            var chunk = chunks[ind];
+            setTimeout(function() {
+                var reqs = [];
+                for (var ch of chunk) {
+                    reqs.push(ch.update_details())
+                }
+                Promise.all(reqs)
+                .then(values => {
+                    for (var d of values) {
+                        update_entry(d);
+                    }
+                })
+                .catch(error => { show_error(error) })
+            }, timeout * ind);
+        })(i);
+    }
 }
 
 function update_entry(change) {
