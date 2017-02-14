@@ -155,31 +155,36 @@ function get_all_changes() {
     start_loading();
     d3_root.select('#gerrit_changes').classed('hide', false);
 
+    var requests = [];
     for (var i = user_config.projects.length - 1; i >= 0; i--) {
         var host = user_config.projects[i].host;
         var path = user_config.projects[i].path;
         for (var j = user_config.projects[i].queries.length - 1; j >= 0; j--) {
             query = user_config.projects[i].queries[j];
-            gerrit.query_changes(host, path, query)
-            .then(function(res) {
-                for (var ch of res.json) {
-                    if (ch['_number'] in all_changes) {
-                        continue;
-                    }
-
-                    var c = new Change(res.host, res.path, ch);
-                    all_changes[c._number] = {'obj': c, 'sts': 'updating'};
-                }
-                update_changes_table();
-            })
-            .catch(function(e) {
-                d3_root.select('#gerrit_changes').classed('hide', true);
-                all_changes = {};
-                updater_loading_status();
-                show_error(error);
-            });
+            requests.push(gerrit.query_changes(host, path, query))
         }
     }
+
+    Promise.all(requests)
+    .then(values => {
+        for (var res of values) {
+            for (var ch of res.json) {
+                if (ch['_number'] in all_changes) {
+                    continue;
+                }
+
+                var c = new Change(res.host, res.path, ch);
+                all_changes[c._number] = {'obj': c, 'sts': 'updating'};
+            }
+        }
+        update_changes_table();
+    })
+    .catch(function() {
+        d3_root.select('#gerrit_changes').classed('hide', true);
+        all_changes = {};
+        updater_loading_status();
+        show_error(error);
+    });
 }
 
 function load_user_config(user) {
