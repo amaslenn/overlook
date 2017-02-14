@@ -165,10 +165,8 @@ function get_all_changes() {
         }
     }
 
-    console.log("Waiting for all queries to respond...");
     Promise.all(requests)
     .then(values => {
-        console.log(" done");
         for (var res of values) {
             for (var ch of res.json) {
                 if (ch['_number'] in all_changes) {
@@ -182,7 +180,6 @@ function get_all_changes() {
         update_changes_table();
     })
     .catch(error => {
-        console.log(" done with error:", error);
         d3_root.select('#gerrit_changes').classed('hide', true);
         all_changes = {};
         updater_loading_status();
